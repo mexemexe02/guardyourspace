@@ -407,5 +407,80 @@
 
     <script src="config.js"></script>
     <script src="script.js"></script>
+    <!-- Add PayPal SDK script here -->
+    <script>
+        // Load PayPal script dynamically after DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create script element
+            const script = document.createElement('script');
+            script.src = `https://www.paypal.com/sdk/js?client-id=${CONFIG.PAYPAL_CLIENT_ID}&currency=USD`;
+            script.async = true;
+            
+            // Set up callback for when script loads
+            script.onload = function() {
+                // Initialize PayPal button
+                if (window.paypal) {
+                    console.log("PayPal SDK loaded successfully");
+                    
+                    paypal.Buttons({
+                        style: {
+                            layout: 'vertical',
+                            color: 'blue',
+                            shape: 'rect',
+                            label: 'pay'
+                        },
+                        createOrder: function(data, actions) {
+                            console.log("Creating PayPal order");
+                            return actions.order.create({
+                                purchase_units: [{
+                                    description: 'emGuarde EMF Protection Device',
+                                    amount: {
+                                        value: '2499.99'
+                                    }
+                                }]
+                            });
+                        },
+                        onApprove: function(data, actions) {
+                            console.log("Payment approved", data);
+                            return actions.order.capture().then(function(details) {
+                                console.log("Payment completed", details);
+                                
+                                // Show success page
+                                document.getElementById('order-id').textContent = details.id;
+                                document.getElementById('order-date').textContent = new Date().toLocaleDateString();
+                                document.getElementById('order-amount').textContent = '2,499.99';
+                                document.getElementById('order-status').textContent = 'Completed';
+                                
+                                // Hide main content and show success page
+                                document.querySelectorAll('section:not(#order-success)').forEach(section => {
+                                    section.style.display = 'none';
+                                });
+                                document.getElementById('order-success').style.display = 'block';
+                                window.scrollTo(0, 0);
+                            });
+                        },
+                        onError: function(err) {
+                            console.error("PayPal error:", err);
+                            alert("There was an error processing your payment. Please try again or contact support.");
+                        }
+                    }).render('#paypal-button-container');
+                } else {
+                    console.error("PayPal SDK failed to load properly");
+                    document.getElementById('paypal-button-container').innerHTML = 
+                        '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
+                }
+            };
+            
+            // Handle script loading errors
+            script.onerror = function() {
+                console.error("Failed to load PayPal SDK");
+                document.getElementById('paypal-button-container').innerHTML = 
+                    '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
+            };
+            
+            // Add script to document
+            document.body.appendChild(script);
+        });
+    </script>
 </body>
 </html> 
