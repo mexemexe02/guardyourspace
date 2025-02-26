@@ -1,0 +1,9 @@
+# Ignore config with real keys
+config.js
+
+# Ignore any log files
+*.log
+
+# Ignore system files
+.DS_Store
+Thumbs.db 
