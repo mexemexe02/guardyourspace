@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // Smooth scrolling for navigation links
 document.addEventListener('DOMContentLoaded', function() {
     // Get all anchor links that point to sections on the page
@@ -441,428 +440,159 @@ document.addEventListener('DOMContentLoaded', function() {
     knowledgeBase.push(formSubmissionsResponse);
 
     // Toggle chat visibility
-    chatToggle.addEventListener('click', () => {
-        chatContainer.style.display = 'flex';
-        chatToggle.style.display = 'none';
-        
-        // Show suggested questions if first time opening
-        if (chatContext.conversationHistory.length === 0) {
-            showSuggestedQuestions();
-        }
-    });
-
-    chatClose.addEventListener('click', () => {
-        chatContainer.style.display = 'none';
-        chatToggle.style.display = 'flex';
-    });
-
-    // Process user input and find best response
-    function processUserInput(userText) {
-        userText = userText.toLowerCase().trim();
-        
-        // Add to conversation history
-        chatContext.conversationHistory.push({
-            role: 'user',
-            text: userText
+    if (chatToggle) {
+        console.log("Chat toggle button found");
+        chatToggle.addEventListener('click', function() {
+            console.log("Chat toggle clicked");
+            chatContainer.classList.toggle('active');
         });
-        
-        // Find best matching response from knowledge base
-        let bestMatch = findBestMatch(userText);
-        
-        if (bestMatch) {
-            // Update context with current topic
-            chatContext.lastTopic = bestMatch.category;
-            chatContext.suggestedFollowUps = bestMatch.followUps;
-            
-            return {
-                text: bestMatch.response,
-                followUps: bestMatch.followUps
-            };
-        }
-        
-        // Default response if no match found
-        return {
-            text: "I'm not sure I understand that question. You can ask me about emGuarde's features, pricing, installation, or where to use it. What would you like to know?",
-            followUps: ["What is emGuarde?", "How does it work?", "How much does it cost?"]
-        };
+    } else {
+        console.error("Chat toggle button not found");
     }
-
-    // Find best matching response using NLP techniques
-    function findBestMatch(userText) {
-        let bestScore = 0;
-        let bestMatch = null;
-        
-        for (const item of knowledgeBase) {
-            // Check for exact pattern matches
-            for (const pattern of item.patterns) {
-                if (userText.includes(pattern)) {
-                    // Check if any keywords are also present
-                    for (const keyword of item.keywords) {
-                        if (userText.includes(keyword)) {
-                            return item; // Perfect match
-                        }
-                    }
-                }
-            }
-            
-            // Calculate match score based on keywords
-            let score = 0;
-            for (const keyword of item.keywords) {
-                if (userText.includes(keyword)) {
-                    score += 1;
-                }
-            }
-            
-            // Check for pattern partial matches
-            for (const pattern of item.patterns) {
-                const patternWords = pattern.split(' ');
-                for (const word of patternWords) {
-                    if (word.length > 3 && userText.includes(word)) {
-                        score += 0.5;
-                    }
-                }
-            }
-            
-            // Consider conversation context for better continuity
-            if (chatContext.lastTopic === item.category) {
-                score += 0.5; // Slight boost for staying on topic
-            }
-            
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = item;
-            }
-        }
-        
-        // Return match if score is above threshold
-        return bestScore >= 1 ? bestMatch : null;
+    
+    // Close chat
+    if (chatClose) {
+        chatClose.addEventListener('click', function() {
+            chatContainer.classList.remove('active');
+        });
     }
-
-    // Handle user input
-    function handleUserInput() {
+    
+    // Send message function
+    function sendMessage() {
         const message = userInput.value.trim();
-        if (message) {
-            // Add user message to chat
-            addMessageToChat(message, 'user');
-            
-            // Clear input field
-            userInput.value = '';
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // Process after short delay to simulate thinking
-            setTimeout(() => {
-                // Remove typing indicator
-                removeTypingIndicator();
-                
-                // Get response
-                const response = processUserInput(message);
-                
-                // Add bot response to chat
-                addMessageToChat(response.text, 'bot');
-                
-                // Show follow-up suggestions after a short delay
-                setTimeout(() => {
-                    showFollowUpSuggestions(response.followUps);
-                }, 500);
-                
-            }, 1000);
-        }
-    }
-
-    // Add message to chat
-    function addMessageToChat(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}`;
-        messageDiv.textContent = text;
-        chatMessages.appendChild(messageDiv);
+        if (message === '') return;
+        
+        // Add user message to chat
+        const userMessageElement = document.createElement('div');
+        userMessageElement.className = 'message user';
+        userMessageElement.textContent = message;
+        chatMessages.appendChild(userMessageElement);
+        
+        // Clear input
+        userInput.value = '';
         
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
         
-        // Add to conversation history
-        if (sender === 'bot') {
-            chatContext.conversationHistory.push({
-                role: 'bot',
-                text: text
-            });
-        }
-    }
-
-    // Show typing indicator
-    function showTypingIndicator() {
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'message bot typing';
-        typingDiv.id = 'typing-indicator';
+        // Simulate bot response (with typing indicator)
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'message bot typing';
+        typingIndicator.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+        chatMessages.appendChild(typingIndicator);
         
-        for (let i = 0; i < 3; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'dot';
-            typingDiv.appendChild(dot);
-        }
-        
-        chatMessages.appendChild(typingDiv);
+        // Scroll to show typing indicator
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Process the message and get response
+        setTimeout(function() {
+            // Remove typing indicator
+            chatMessages.removeChild(typingIndicator);
+            
+            // Add bot response
+            const botMessageElement = document.createElement('div');
+            botMessageElement.className = 'message bot';
+            botMessageElement.textContent = getBotResponse(message);
+            chatMessages.appendChild(botMessageElement);
+            
+            // Scroll to bottom again
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 1000);
     }
-
-    // Remove typing indicator
-    function removeTypingIndicator() {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
-    }
-
-    // Show follow-up suggestions
-    function showFollowUpSuggestions(suggestions) {
-        // Remove any existing suggestions
-        const existingSuggestions = document.querySelector('.follow-up-suggestions');
-        if (existingSuggestions) {
-            existingSuggestions.remove();
-        }
-        
-        if (!suggestions || suggestions.length === 0) return;
-        
-        const suggestionsDiv = document.createElement('div');
-        suggestionsDiv.className = 'follow-up-suggestions';
-        
-        const heading = document.createElement('div');
-        heading.className = 'suggestions-heading';
-        heading.textContent = 'You might want to ask:';
-        suggestionsDiv.appendChild(heading);
-        
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.className = 'suggestion-buttons';
-        
-        suggestions.forEach(suggestion => {
-            const button = document.createElement('button');
-            button.textContent = suggestion;
-            button.addEventListener('click', () => {
-                userInput.value = suggestion;
-                handleUserInput();
-            });
-            buttonsDiv.appendChild(button);
-        });
-        
-        suggestionsDiv.appendChild(buttonsDiv);
-        chatMessages.appendChild(suggestionsDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Show initial suggested questions
-    function showSuggestedQuestions() {
-        const initialSuggestions = [
-            "What is emGuarde?",
-            "How does it work?",
-            "What area does it cover?",
-            "How much does it cost?",
-            "Is it safe?"
-        ];
-        
-        showFollowUpSuggestions(initialSuggestions);
-    }
-
-    // Event listeners
-    sendButton.addEventListener('click', handleUserInput);
     
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleUserInput();
+    // Handle send button click
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+    }
+    
+    // Handle enter key press
+    if (userInput) {
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+    
+    // Bot response logic
+    function getBotResponse(message) {
+        message = message.toLowerCase();
+        
+        // Simple response logic based on keywords
+        if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+            return "Hello! How can I help you with EMF protection today?";
+        } else if (message.includes('what') && (message.includes('do') || message.includes('does')) && (message.includes('this') || message.includes('device') || message.includes('emguarde'))) {
+            return "The emGuarde device is an advanced EMF protection system that helps shield you from harmful electromagnetic radiation emitted by electronics like Wi-Fi routers, cell phones, and computers. It uses proprietary frequency modulation technology to create a protective field covering up to 400 square feet, helping to reduce potential health impacts of EMF exposure.";
+        } else if (message.includes('price') || message.includes('cost') || message.includes('how much')) {
+            return "The emGuarde device is priced at $2,499.99. This includes free shipping within the US, a 30-day money-back guarantee, and a 1-year manufacturer's warranty. We also offer financing options if you're interested.";
+        } else if (message.includes('shipping') || message.includes('delivery')) {
+            return "We offer free priority shipping within the United States, with delivery typically taking 3-5 business days. International shipping is available at an additional cost depending on your location. All devices are carefully packaged to ensure they arrive in perfect condition.";
+        } else if (message.includes('warranty') || message.includes('guarantee')) {
+            return "The emGuarde device comes with a 30-day money-back guarantee - if you're not completely satisfied, simply return it for a full refund. It also includes a 1-year manufacturer's warranty against defects. Extended warranty options are available at checkout.";
+        } else if ((message.includes('how') && message.includes('work')) || message.includes('technology')) {
+            return "The emGuarde device uses advanced frequency modulation technology to help neutralize harmful EMF radiation in your environment. Our proprietary system creates a protective field that helps harmonize the electromagnetic frequencies around you without interfering with your devices' functionality. Simply plug it into any standard outlet, and it creates a protective field covering up to 400 square feet.";
+        } else if (message.includes('safe') || message.includes('safety')) {
+            return "Yes, the emGuarde device is completely safe for humans, pets, and plants. It doesn't emit any harmful radiation itself - instead, it works to harmonize existing electromagnetic fields. It doesn't interfere with the normal operation of your electronic devices, and many users report feeling better almost immediately after installation.";
+        } else if (message.includes('coverage') || message.includes('range') || message.includes('area')) {
+            return "Each emGuarde device provides coverage for approximately 400 square feet. For larger spaces like open-concept homes or offices, multiple units can be installed. The protective field extends in all directions from the device, so central placement is ideal for maximum coverage.";
+        } else if (message.includes('install') || message.includes('setup')) {
+            return "Installation is very simple! Just plug the emGuarde device into any standard electrical outlet. No additional setup or configuration is required. For optimal protection, we recommend placing it in a central location in the room you spend the most time in, or near your Wi-Fi router and other electronics.";
+        } else if (message.includes('emf') || message.includes('radiation') || message.includes('electromagnetic')) {
+            return "EMF (Electromagnetic Field) radiation is emitted by electronic devices like cell phones, Wi-Fi routers, computers, and smart meters. While these devices make our lives more convenient, long-term exposure to their radiation may have health implications including fatigue, headaches, sleep disturbances, and more. The emGuarde device helps reduce this exposure in your living or working space without affecting device functionality.";
+        } else if (message.includes('benefits') || message.includes('advantage') || message.includes('help')) {
+            return "Many users report significant benefits after installing the emGuarde device, including improved sleep quality, reduced headaches and fatigue, better concentration, increased energy levels, and an overall sense of wellbeing. The device is especially helpful for those who are sensitive to EMF or who spend long hours around electronic devices.";
+        } else if (message.includes('scientific') || message.includes('studies') || message.includes('research') || message.includes('proof')) {
+            return "Our technology is based on decades of research into electromagnetic fields and their effects on biological systems. While individual results may vary, numerous studies have documented the potential health effects of prolonged EMF exposure. Our own internal testing shows significant harmonization of chaotic electromagnetic fields in spaces where the emGuarde device is installed.";
+        } else if (message.includes('compare') || message.includes('difference') || message.includes('better') || message.includes('other products')) {
+            return "Unlike simple EMF blockers that only work on a specific device or have very limited range, the emGuarde creates a comprehensive protective field covering up to 400 square feet. Our proprietary technology is more advanced than basic Faraday-type shields, addressing a wider spectrum of electromagnetic frequencies while allowing your devices to function normally.";
+        } else if (message.includes('payment') || message.includes('financing') || message.includes('installments')) {
+            return "We accept all major credit cards and PayPal. We also offer financing options through our payment partners, allowing you to pay in monthly installments. All transactions are securely processed and your payment information is never stored on our servers.";
+        } else if (message.includes('return') || message.includes('refund') || message.includes('money back')) {
+            return "We offer a 30-day money-back guarantee. If you're not completely satisfied with your emGuarde device, simply contact our customer service team and return the device in its original packaging. We'll issue a full refund once we receive the returned item.";
+        } else if (message.includes('contact') || message.includes('support') || message.includes('customer service')) {
+            return "You can contact our support team through the contact form on this website, or email us directly at support@emguarde.com. Our customer service team is available Monday through Friday, 9am to 5pm EST, and typically responds within 24 hours.";
+        } else if (message.includes('thank')) {
+            return "You're welcome! Is there anything else I can help you with about the emGuarde device or EMF protection?";
+        } else if (message.includes('discount') || message.includes('coupon') || message.includes('promo')) {
+            return "We occasionally offer special promotions to new customers. Sign up for our newsletter at the bottom of the page to be notified of upcoming discounts. For bulk orders of multiple units, please contact our sales team for special pricing.";
+        } else if (message.includes('battery') || message.includes('power')) {
+            return "The emGuarde device plugs directly into a standard electrical outlet and uses minimal electricity (less than a typical LED light bulb). There are no batteries to replace, and it's designed to operate continuously 24/7 for years of reliable protection.";
+        } else if (message.includes('maintenance') || message.includes('clean')) {
+            return "The emGuarde requires no maintenance or cleaning. Once plugged in, it will continue to work effectively for years. There are no filters to replace or components that wear out under normal use.";
+        } else {
+            return "I'm not sure I understand your question about EMF protection or the emGuarde device. Could you rephrase it? You can ask about how it works, pricing, installation, benefits, or any other aspects of our product.";
         }
-    });
+    }
+});
 
-    // Add CSS for enhanced chat UI
-    const style = document.createElement('style');
-    style.textContent = `
-        .chat-container {
-            display: none;
-            flex-direction: column;
-            height: 500px;
-            width: 350px;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.15);
-            z-index: 1000;
-            background: white;
-        }
-        
-        .chat-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #f5f7fa;
-        }
-        
-        .message {
-            padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 80%;
-            word-break: break-word;
-        }
-        
-        .message.user {
-            align-self: flex-end;
-            background: var(--secondary-color);
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-        
-        .message.bot {
-            align-self: flex-start;
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .typing {
-            background: rgba(255,255,255,0.7);
-            padding: 10px;
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-        }
-        
-        .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--secondary-color);
-            border-radius: 50%;
-            animation: bounce 1s infinite;
-        }
-        
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
-        .chat-input {
-            display: flex;
-            padding: 10px;
-            background: white;
-            border-top: 1px solid #eee;
-        }
-        
-        .chat-input input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            margin-right: 10px;
-            font-size: 14px;
-            outline: none;
-        }
-        
-        .chat-input input:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
-        }
-        
-        .chat-button {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .chat-button:hover {
-            background: var(--primary-color);
-            transform: scale(1.05);
-        }
-        
-        .follow-up-suggestions {
-            align-self: center;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .suggestions-heading {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        
-        .suggestion-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-        }
-        
-        .suggestion-buttons button {
-            background: white;
-            border: 1px solid var(--secondary-color);
-            border-radius: 15px;
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--secondary-color);
-        }
-        
-        .suggestion-buttons button:hover {
-            background: var(--secondary-color);
-            color: white;
-        }
-        
-        .chat-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--secondary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: none;
-            z-index: 999;
-            transition: all 0.3s ease;
-        }
-        
-        .chat-toggle:hover {
-            transform: scale(1.1);
-            background: var(--primary-color);
-        }
-        
-        .chat-toggle i {
-            font-size: 24px;
-        }
-    `;
-    document.head.appendChild(style);
+// Newsletter form handling
+document.addEventListener('DOMContentLoaded', function() {
+    const newsletterForm = document.getElementById('newsletter-form');
+    const newsletterSuccess = document.querySelector('.newsletter-success');
+    
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get email input
+            const emailInput = this.querySelector('input[type="email"]');
+            const email = emailInput.value.trim();
+            
+            // Simple validation
+            if (email === '') return;
+            
+            // In a real implementation, you would send this to your server or email service
+            console.log("Newsletter signup:", email);
+            
+            // Clear input and show success message
+            emailInput.value = '';
+            newsletterSuccess.style.display = 'block';
+            
+            // Hide success message after 3 seconds
+            setTimeout(function() {
+                newsletterSuccess.style.display = 'none';
+            }, 3000);
+        });
+    }
 });
 
 // Fix PayPal button loading
@@ -870,62 +600,81 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load PayPal script dynamically
     const paypalScript = document.createElement('script');
     paypalScript.src = `https://www.paypal.com/sdk/js?client-id=${CONFIG.PAYPAL_CLIENT_ID}&currency=USD`;
+    paypalScript.async = true;
     paypalScript.onload = initPayPalButton;
+    paypalScript.onerror = function() {
+        console.error("Failed to load PayPal SDK");
+        document.getElementById('paypal-button-container').innerHTML = 
+            '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
+    };
     document.body.appendChild(paypalScript);
 });
 
-// Update the PayPal configuration
+// Add the missing initPayPalButton function
 function initPayPalButton() {
-    console.log("Setting up PayPal button...");
-    
-    // Check if container exists
-    const container = document.getElementById('paypal-button-container');
-    if (!container) {
-        console.error("PayPal button container not found!");
-        return;
+    if (window.paypal) {
+        console.log("PayPal SDK loaded successfully");
+        
+        paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'pay'
+            },
+            createOrder: function(data, actions) {
+                console.log("Creating PayPal order");
+                return actions.order.create({
+                    purchase_units: [{
+                        description: 'emGuarde EMF Protection Device',
+                        amount: {
+                            value: '2499.99'
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                console.log("Payment approved", data);
+                return actions.order.capture().then(function(details) {
+                    console.log("Payment completed", details);
+                    
+                    // Show success page
+                    document.getElementById('order-id').textContent = details.id;
+                    document.getElementById('order-date').textContent = new Date().toLocaleDateString();
+                    document.getElementById('order-amount').textContent = '2,499.99';
+                    document.getElementById('order-status').textContent = 'Completed';
+                    
+                    // Hide main content and show success page
+                    document.querySelectorAll('section:not(#order-success)').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    document.getElementById('order-success').style.display = 'block';
+                    window.scrollTo(0, 0);
+                });
+            },
+            onError: function(err) {
+                console.error("PayPal error:", err);
+                alert("There was an error processing your payment. Please try again or contact support.");
+            }
+        }).render('#paypal-button-container');
+    } else {
+        console.error("PayPal SDK failed to load properly");
+        document.getElementById('paypal-button-container').innerHTML = 
+            '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
     }
-
-    // Check if PayPal SDK is loaded
-    if (!window.paypal) {
-        console.error("PayPal SDK not loaded!");
-        return;
-    }
-
-    paypal.Buttons({
-        style: {
-            layout: 'vertical',
-            color:  'gold',
-            shape:  'rect',
-            label:  'paypal'
-        },
-
-        createOrder: function(data, actions) {
-            return actions.order.create({
-                purchase_units: [{
-                    description: "emGuarde EMF Protection Device",
-                    amount: {
-                        currency_code: "USD",
-                        value: '2499.99'
-                    }
-                }]
-            });
-        },
-
-        onApprove: function(data, actions) {
-            return actions.order.capture().then(function(orderData) {
-                // Hide buy section and show success page
-                document.querySelector('.pricing-box').style.display = 'none';
-                document.getElementById('order-success').style.display = 'block';
-                
-                // Update order details
-                document.getElementById('order-id').textContent = orderData.id;
-                document.getElementById('order-date').textContent = new Date().toLocaleString();
-                document.getElementById('order-amount').textContent = '2,499.99';
-                document.getElementById('order-status').textContent = 'Completed';
-            });
-        }
-    }).render('#paypal-button-container');
 }
+
+// Add chat notification removal
+document.addEventListener('DOMContentLoaded', function() {
+    const chatToggle = document.getElementById('chat-toggle');
+    
+    if (chatToggle) {
+        chatToggle.addEventListener('click', function() {
+            // Remove the notification dot after first click
+            this.classList.add('notification-read');
+        });
+    }
+});
 
 // Add this function to handle the hero button click
 function scrollToBuy(event) {
@@ -951,10 +700,6 @@ document.querySelector('input[name="access_key"]').value = CONFIG.WEB3FORMS_KEY;
 
 // Update reCAPTCHA
 document.querySelector('.g-recaptcha').setAttribute('data-sitekey', CONFIG.RECAPTCHA_SITE_KEY);
-
-// Update PayPal script
-document.querySelector('script[src*="paypal.com"]').src = 
-    `https://www.paypal.com/sdk/js?client-id=${CONFIG.PAYPAL_CLIENT_ID}&currency=USD`;
 
 // Add testimonials view more functionality
 document.addEventListener('DOMContentLoaded', function() {
