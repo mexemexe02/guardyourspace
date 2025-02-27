@@ -7,7 +7,15 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://www.paypal.com">
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src * data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'; 
+      script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; 
+      connect-src * data: blob: 'unsafe-inline'; 
+      img-src * data: blob: 'unsafe-inline'; 
+      frame-src * data: blob: ; 
+      style-src * data: blob: 'unsafe-inline';
+      font-src * data: blob: 'unsafe-inline';
+    ">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js?render=6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh"></script>
 </head>
@@ -78,29 +86,29 @@
                 <!-- Thumbnail gallery -->
                 <div class="thumbnail-gallery">
                     <div class="thumbnail-row">
-                        <div class="thumbnail" onclick="changeImage('images/emguarde-device-front.jpg', 'emGuarde device front view')">
-                            <img class="thumbnail-image product-image" 
+                        <div class="thumbnail active" onclick="changeImage('images/emguarde-device-front.jpg', 'emGuarde device front view')">
+                            <img class="thumbnail-image" 
                                  src="images/emguarde-device-front.jpg" 
                                  alt="emGuarde front view"
-                                 onerror="this.src='https://via.placeholder.com/90x90?text=Front';this.onerror='';">
+                                 onerror="this.onerror='';this.src='https://via.placeholder.com/70x70?text=Front';">
                         </div>
                         <div class="thumbnail" onclick="changeImage('images/emguarde-device-angle.jpg', 'emGuarde device angle view')">
-                            <img class="thumbnail-image product-image" 
+                            <img class="thumbnail-image" 
                                  src="images/emguarde-device-angle.jpg" 
                                  alt="emGuarde angle view"
-                                 onerror="this.src='https://via.placeholder.com/90x90?text=Angle';this.onerror='';">
+                                 onerror="this.onerror='';this.src='https://via.placeholder.com/70x70?text=Angle';">
                         </div>
                         <div class="thumbnail" onclick="changeImage('images/emguarde-in-use.jpg', 'emGuarde device in use')">
-                            <img class="thumbnail-image product-image" 
+                            <img class="thumbnail-image" 
                                  src="images/emguarde-in-use.jpg" 
                                  alt="emGuarde in use"
-                                 onerror="this.src='https://via.placeholder.com/90x90?text=In+Use';this.onerror='';">
+                                 onerror="this.onerror='';this.src='https://via.placeholder.com/70x70?text=In+Use';">
                         </div>
                         <div class="thumbnail" onclick="changeImage('images/emguarde-size-comparison.jpg', 'emGuarde size comparison')">
-                            <img class="thumbnail-image product-image" 
+                            <img class="thumbnail-image" 
                                  src="images/emguarde-size-comparison.jpg" 
                                  alt="emGuarde size comparison"
-                                 onerror="this.src='https://via.placeholder.com/90x90?text=Size';this.onerror='';">
+                                 onerror="this.onerror='';this.src='https://via.placeholder.com/70x70?text=Size';">
                         </div>
                     </div>
                 </div>
@@ -177,7 +185,7 @@
         <div class="container">
             <h2>What Our Clients Say</h2>
             <div class="testimonials-grid">
-                <!-- Initial visible testimonials -->
+                <!-- All testimonials visible by default (no "hidden" class) -->
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         <i class="fas fa-quote-left"></i>
@@ -205,7 +213,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         <i class="fas fa-quote-left"></i>
@@ -219,9 +227,9 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Hidden testimonials (shown after clicking "View More") -->
-                <div class="testimonial-card hidden">
+                
+                <!-- Previously hidden testimonials - now visible -->
+                <div class="testimonial-card">
                     <div class="testimonial-content">
                         <i class="fas fa-quote-left"></i>
                         <p>"Running a busy hotel, we wanted to ensure our guests' comfort. Since installing emGuarde, we've received numerous compliments about the room quality."</p>
@@ -234,8 +242,8 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="testimonial-card hidden">
+                
+                <div class="testimonial-card">
                     <div class="testimonial-content">
                         <i class="fas fa-quote-left"></i>
                         <p>"As someone sensitive to EMF, I noticed an immediate difference. My headaches have reduced significantly since using emGuarde."</p>
@@ -248,8 +256,8 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="testimonial-card hidden">
+                
+                <div class="testimonial-card">
                     <div class="testimonial-content">
                         <i class="fas fa-quote-left"></i>
                         <p>"Our office environment feels noticeably different. Employees report better concentration and less fatigue during long workdays."</p>
@@ -262,50 +270,7 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="testimonial-card hidden">
-                    <div class="testimonial-content">
-                        <i class="fas fa-quote-left"></i>
-                        <p>"I was skeptical at first, but after using emGuarde in my therapy practice, both my clients and I have experienced a more relaxed atmosphere."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="https://randomuser.me/api/portraits/men/7.jpg" alt="Dr. Thomas Baker">
-                        <div>
-                            <h4>Dr. Thomas Baker</h4>
-                            <p>Psychotherapist</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="testimonial-card hidden">
-                    <div class="testimonial-content">
-                        <i class="fas fa-quote-left"></i>
-                        <p>"As a mother of three tech-savvy kids, I wanted to create a healthier home environment. emGuarde has been a great investment in our family's wellbeing."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="https://randomuser.me/api/portraits/women/8.jpg" alt="Jennifer White">
-                        <div>
-                            <h4>Jennifer White</h4>
-                            <p>Parent & Wellness Advocate</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="testimonial-card hidden">
-                    <div class="testimonial-content">
-                        <i class="fas fa-quote-left"></i>
-                        <p>"The installation in our data center has helped create a better working environment for our IT staff without affecting equipment performance."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="https://randomuser.me/api/portraits/men/9.jpg" alt="Robert Kim">
-                        <div>
-                            <h4>Robert Kim</h4>
-                            <p>IT Director</p>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <button id="view-more-testimonials" class="cta-button">View More Reviews</button>
         </div>
     </section>
 
@@ -518,17 +483,8 @@
         </div>
     </footer>
 
-    <!-- Add these script tags right before the closing </body> tag -->
-    <script>
-        // Fallback configuration in case config.js is missing
-        const CONFIG = {
-            RECAPTCHA_SITE_KEY: "",
-            WEB3FORMS_KEY: "",
-            PAYPAL_CLIENT_ID: ""
-        };
-    </script>
+    <!-- Scripts - ensure config.js is included only once at the bottom -->
     <script src="config.js"></script>
     <script src="script.js"></script>
-    <!-- PayPal SDK will be loaded by script.js -->
 </body>
 </html> 

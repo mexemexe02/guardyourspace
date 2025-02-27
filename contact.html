@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - emGuarde</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- reCAPTCHA v2 invisible script -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Other head elements -->
+</head>
+<body>
+    <!-- Header and other elements -->
+    
+    <section class="contact-section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
+                <!-- Required hidden fields for Web3Forms -->
+                <input type="hidden" name="access_key" value="f115e690-e290-47ea-9449-c63fa95720b1">
+                <input type="hidden" name="subject" value="New Contact Form Submission - emGuarde">
+                <input type="hidden" name="from_name" value="emGuarde Website">
+                <input type="hidden" name="botcheck" value="">
+                <input type="hidden" name="success_url" value="">
+                <!-- Existing form fields -->
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="email" name="email" placeholder="Your Email" required>
+                <input type="hidden" name="replyto" id="replyto">
+                <textarea name="message" placeholder="Your Message" required></textarea>
+                <!-- Add reCAPTCHA v2 invisible div -->
+                <div class="g-recaptcha" 
+                     data-sitekey="6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh" 
+                     data-callback="onSubmitForm"
+                     data-size="invisible">
+                </div>
+                <!-- Button -->
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </section>
+    
+    <script>
+        function onSubmitForm(token) {
+            document.getElementById("contact-form").submit();
+        }
+        
+        // Set reply-to field to match email field
+        document.querySelector('input[name="email"]').addEventListener('input', function() {
+            document.getElementById('replyto').value = this.value;
+        });
+    </script>
+    
+    <!-- Footer and other elements -->
+</body>
+</html> 

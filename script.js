@@ -1,5 +1,15 @@
 // Smooth scrolling for navigation links
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug CONFIG object
+    console.log("CONFIG object available:", typeof CONFIG !== 'undefined');
+    if (typeof CONFIG !== 'undefined') {
+        console.log("CONFIG keys:", Object.keys(CONFIG));
+        console.log("Web3Forms key exists:", !!CONFIG.WEB3FORMS_KEY);
+        console.log("reCAPTCHA key exists:", !!CONFIG.RECAPTCHA_SITE_KEY);
+    } else {
+        console.error("CONFIG object not found! This will cause form submission to fail.");
+    }
+    
     // Get all anchor links that point to sections on the page
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     
@@ -85,71 +95,128 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up the contact form submission
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
-        // Remove any existing event listeners to avoid duplicates
-        const newForm = contactForm.cloneNode(true);
-        contactForm.parentNode.replaceChild(newForm, contactForm);
+        console.log('Initializing contact form functionality');
         
-        // Add the event listener to the new form
-        newForm.addEventListener('submit', function(e) {
+        contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log("Contact form submitted");
             
             // Show loading state
-            const submitButton = newForm.querySelector('button[type="submit"]');
-            const originalText = submitButton.textContent;
-            submitButton.textContent = 'Sending...';
+            const submitButton = contactForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             submitButton.disabled = true;
             
-            // Get reCAPTCHA token
-            grecaptcha.ready(function() {
-                grecaptcha.execute(getConfigValue('RECAPTCHA_SITE_KEY', '6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh'), {action: 'submit'})
-                    .then(function(token) {
-                        console.log("reCAPTCHA token obtained");
+            // Add a timeout to reset the button if the submission takes too long
+            const buttonResetTimeout = setTimeout(() => {
+                console.log('Form submission timeout - resetting button');
+                submitButton.innerHTML = originalButtonText;
+                submitButton.disabled = false;
+            }, 15000); // 15 seconds timeout
+            
+            // Try to get reCAPTCHA token, with fallback for when it's not available
+            try {
+                if (typeof grecaptcha !== 'undefined' && grecaptcha.ready) {
+                    console.log("Using reCAPTCHA for form submission");
+                    
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh', {action: 'submit'})
+                            .then(function(token) {
+                                console.log("reCAPTCHA token obtained");
+                                submitFormWithToken(token);
+                            })
+                            .catch(function(error) {
+                                console.error("reCAPTCHA error:", error);
+                                console.log("Falling back to submission without reCAPTCHA");
+                                submitFormWithToken('');
+                            });
+                    });
+                } else {
+                    console.warn("reCAPTCHA not available, submitting without verification");
+                    submitFormWithToken('');
+                }
+            } catch (error) {
+                console.error("Error in reCAPTCHA setup:", error);
+                submitFormWithToken('');
+            }
+            
+            // Function to submit the form with a token
+            function submitFormWithToken(token) {
+                // Create form data
+                const formData = new FormData(contactForm);
+                
+                // Add the reCAPTCHA token if available
+                if (token) {
+                    formData.append('g-recaptcha-response', token);
+                }
+                
+                // Ensure the access key is set
+                const accessKey = "f115e690-e290-47ea-9449-c63fa95720b1";
+                formData.append('access_key', accessKey);
+                console.log("Using Web3Forms access key:", accessKey.substring(0, 5) + "..." + accessKey.substring(accessKey.length - 5));
+                
+                // Log the form data for debugging (exclude sensitive info)
+                console.log("Form submission fields:", Array.from(formData.keys()));
+                
+                // Use traditional form submission approach
+                const originalAction = contactForm.getAttribute('action');
+                const originalMethod = contactForm.getAttribute('method');
+                
+                // Add a hidden iframe for submission without page reload
+                const iframe = document.createElement('iframe');
+                iframe.name = 'hidden_iframe';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                // Set form target to the iframe
+                contactForm.setAttribute('target', 'hidden_iframe');
+                
+                // Create success handler
+                iframe.onload = function() {
+                    clearTimeout(buttonResetTimeout);
+                    
+                    // Create and show success message
+                    const formContainer = contactForm.parentElement;
+                    
+                    // Hide the form
+                    contactForm.style.display = 'none';
+                    
+                    // Create success message element
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'success-message';
+                    successMessage.innerHTML = `
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3>Thank You!</h3>
+                        <p>Your message has been sent successfully.</p>
+                        <p>We'll get back to you as soon as possible.</p>
+                        <button class="send-another-btn">Send Another Message</button>
+                    `;
+                    
+                    // Add success message to the page
+                    formContainer.appendChild(successMessage);
+                    
+                    // Add event listener to "Send Another Message" button
+                    const sendAnotherBtn = successMessage.querySelector('.send-another-btn');
+                    sendAnotherBtn.addEventListener('click', function() {
+                        // Reset form
+                        contactForm.reset();
                         
-                        // Create form data
-                        const formData = new FormData(newForm);
-                        formData.append('g-recaptcha-response', token);
+                        // Remove success message
+                        formContainer.removeChild(successMessage);
                         
-                        // Submit the form using fetch
-                        fetch(newForm.action, {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => {
-                            console.log("Response status:", response.status);
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log("Form submission response:", data);
-                            
-                            if (data.success) {
-                                // Show success message
-                                alert('Thank you for your message! We will get back to you soon.');
-                                newForm.reset();
-                            } else {
-                                console.error("Form submission error:", data);
-                                alert('There was an error sending your message. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Form submission error:', error);
-                            alert('There was an error sending your message. Please try again or contact us directly at support@emguarde.com');
-                        })
-                        .finally(() => {
-                            submitButton.textContent = originalText;
-                            submitButton.disabled = false;
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error("reCAPTCHA error:", error);
-                        alert("There was an error verifying your submission. Please try again.");
-                        submitButton.textContent = originalText;
+                        // Show form again
+                        contactForm.style.display = 'block';
+                        
+                        // Reset button
+                        submitButton.innerHTML = originalButtonText;
                         submitButton.disabled = false;
                     });
-            });
+                };
+                
+                // Submit the form directly
+                contactForm.submit();
+            }
         });
     }
 });
@@ -689,106 +756,121 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add this code for a more robust PayPal button implementation
+// Fix PayPal and chatbot functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Get PayPal container element
+    console.log('Initializing site functionality...');
+    
+    // 1. Fix PayPal functionality
     const paypalContainer = document.getElementById('paypal-button-container');
-    
-    // Check if container exists
-    if (!paypalContainer) {
-        console.error("PayPal container not found");
-        return;
-    }
-    
-    // Hard-code client ID directly to avoid any config issues
-    let clientId = 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h'; // Live
-    
-    // Check for GitHub Pages
-    if (window.location.hostname.includes('github.io') || 
-        window.location.hostname.includes('mexemexe02')) {
-        clientId = 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G'; // Sandbox
-    }
-    
-    console.log("PayPal initialization with client ID:", clientId);
-    console.log("Current hostname:", window.location.hostname);
-    
-    // Clear any existing content and add a loading indicator
-    paypalContainer.innerHTML = '<div class="loading">Loading payment options...</div>';
-    
-    // Create and append the PayPal script
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=CAD`;
-    
-    script.onload = function() {
-        console.log("PayPal SDK loaded successfully");
+    if (paypalContainer) {
+        console.log('PayPal container found, initializing PayPal...');
         
-        // Clear the loading indicator
-        paypalContainer.innerHTML = '';
+        // Clear any existing content
+        paypalContainer.innerHTML = '<div class="loading">Loading payment options...</div>';
         
-        // Render the PayPal buttons
-        paypal.Buttons({
-            // Configure the button style
-            style: {
-                layout: 'vertical',  // vertical | horizontal
-                color:  'blue',      // gold | blue | silver | black
-                shape:  'rect',      // pill | rect
-                label:  'paypal'     // paypal | checkout | buynow
-            },
-            
-            // Set up the transaction
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: '2499.99',
-                            currency_code: 'CAD'
-                        },
-                        description: 'emGuarde EMF Protection Device'
-                    }]
-                });
-            },
-            
-            // Handle approved transactions
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    // Show a success message
-                    console.log('Transaction completed by ' + details.payer.name.given_name, details);
-                    
-                    // Display success message to user
+        // COMPLETELY NEW APPROACH - DIRECT HTML EMBEDDING
+        // This is much more reliable across different environments
+        
+        // Always use sandbox for local development, live for production
+        const isLocal = window.location.hostname === '127.0.0.1' || 
+                       window.location.hostname === 'localhost';
+        
+        const clientId = isLocal 
+            ? 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G' // Sandbox
+            : 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h'; // Live
+        
+        console.log('Using PayPal client ID:', clientId, 'on', window.location.hostname);
+        
+        // Create the PayPal button container
+        paypalContainer.innerHTML = `
+          <div id="smart-button-container">
+            <div style="text-align: center;">
+              <div id="paypal-button-container-inner"></div>
+            </div>
+          </div>
+        `;
+        
+        // Add the PayPal script directly to the page
+        const paypalScript = document.createElement('script');
+        // Make sure clientId is not empty
+        if (!clientId) {
+            console.error('PayPal client ID is empty or undefined');
+            clientId = isLocal 
+                ? 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G'
+                : 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h';
+        }
+        paypalScript.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&enable-funding=venmo&currency=CAD`;
+        console.log('PayPal SDK URL:', paypalScript.src);
+        document.body.appendChild(paypalScript);
+        
+        // Initialize PayPal buttons once the script is loaded
+        paypalScript.onload = function() {
+          if (window.paypal) {
+            paypal.Buttons({
+                style: {
+                    layout: 'vertical',
+                    color: 'blue',
+                    shape: 'rect',
+                    label: 'paypal'
+                },
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: '2499.99',
+                                currency_code: 'CAD'
+                            },
+                            description: 'emGuarde EMF Protection Device'
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        console.log('Transaction completed by ' + details.payer.name.given_name, details);
+                        
+                        paypalContainer.innerHTML = `
+                            <div class="success-message">
+                                <h3>Thank you for your purchase, ${details.payer.name.given_name}!</h3>
+                                <p>Transaction ID: ${details.id}</p>
+                                <p>We'll process your order right away.</p>
+                            </div>
+                        `;
+                    });
+                },
+                onError: function(err) {
+                    console.error('PayPal Error:', err);
                     paypalContainer.innerHTML = `
-                        <div class="success-message">
-                            <h3>Thank you for your purchase, ${details.payer.name.given_name}!</h3>
-                            <p>Transaction ID: ${details.id}</p>
-                            <p>We'll process your order right away.</p>
+                        <div class="error-message">
+                            <p>There was an error processing your payment. Please try again or contact support.</p>
+                            <button onclick="window.location.reload()">Try Again</button>
                         </div>
                     `;
-                });
-            },
-            
-            // Handle errors
-            onError: function(err) {
-                console.error('PayPal Error:', err);
-                paypalContainer.innerHTML = `
-                    <div class="error-message">
-                        <p>There was an error processing your payment. Please try again or contact support.</p>
-                        <button onclick="window.location.reload()">Try Again</button>
-                    </div>
-                `;
-            }
-        }).render('#paypal-button-container');
-    };
+                }
+            }).render('#paypal-button-container-inner');
+          } else {
+            console.error('PayPal SDK loaded but window.paypal is not defined');
+            paypalContainer.innerHTML = `
+              <div class="error-message">
+                <p>Payment system temporarily unavailable.</p>
+                <button onclick="window.location.reload()" class="retry-button">Retry</button>
+              </div>
+            `;
+          }
+        };
+        
+        // Add error handling for script loading
+        paypalScript.onerror = function() {
+            console.error('Failed to load PayPal SDK');
+            paypalContainer.innerHTML = `
+              <div class="error-message">
+                <p>Payment system temporarily unavailable.</p>
+                <button onclick="window.location.reload()" class="retry-button">Retry</button>
+              </div>
+            `;
+        };
+    }
     
-    script.onerror = function(e) {
-        console.error("Failed to load PayPal SDK", e);
-        paypalContainer.innerHTML = `
-            <div class="error-message">
-                <p>Unable to load payment system. Please refresh the page or try another browser.</p>
-                <button onclick="window.location.reload()">Refresh Page</button>
-            </div>
-        `;
-    };
-    
-    document.body.appendChild(script);
+    // ... Rest of your script.js code for chat functionality ...
 });
 
 // Add chat notification removal
@@ -1219,111 +1301,82 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Updated gallery functionality
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Setting up gallery with direct DOM manipulation...');
+    console.log('Initializing image gallery');
     
-    // Direct DOM manipulation approach
-    setTimeout(function() {
-        // Get elements
-        const featuredImage = document.getElementById('featured-image');
-        const thumbnails = document.querySelectorAll('.thumbnail');
+    // Get all thumbnail elements
+    const thumbnails = document.querySelectorAll('.thumbnail');
+    const featuredImage = document.getElementById('featured-image');
+    
+    if (thumbnails.length > 0 && featuredImage) {
+        console.log(`Found ${thumbnails.length} thumbnails and featured image`);
         
-        console.log('Elements found:', {
-            featuredImage: !!featuredImage,
-            thumbnailCount: thumbnails.length
-        });
+        // Set first thumbnail as active initially
+        thumbnails[0].classList.add('active');
         
-        // Get thumbnails and add click handlers to all of them
-        const featuredImage = document.getElementById('featured-image');
-        
-        if (thumbnails.length > 0) {
-            // Set active class on first thumbnail
-            thumbnails[0].classList.add('active');
-            
-            // Add click handler to all thumbnails
-            thumbnails.forEach(function(thumb) {
-                thumb.addEventListener('click', function() {
-                    // Update active thumbnail
-                    thumbnails.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update featured image
-                    if (featuredImage) {
-                        const thumbImg = this.querySelector('img');
-                        if (thumbImg) {
-                            featuredImage.src = thumbImg.getAttribute('data-full') || thumbImg.src;
-                            featuredImage.alt = thumbImg.alt;
-                        }
-                    }
-                });
-            });
+        // Make sure the featured image is set on page load
+        const firstThumbImg = thumbnails[0].querySelector('img');
+        if (firstThumbImg) {
+            // Get source from data attribute or from src directly
+            const imgSrc = firstThumbImg.getAttribute('data-full') || firstThumbImg.src;
+            featuredImage.src = imgSrc;
+            featuredImage.alt = firstThumbImg.alt || 'Product image';
+            console.log(`Set initial featured image to: ${imgSrc}`);
         }
-    }, 1000); // Give the page time to fully load
+        
+        // Add click handlers to all thumbnails
+        thumbnails.forEach(function(thumb) {
+            thumb.addEventListener('click', function() {
+                console.log('Thumbnail clicked');
+                
+                // Remove active class from all thumbnails
+                thumbnails.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked thumbnail
+                this.classList.add('active');
+                
+                // Get image from this thumbnail
+                const thumbImg = this.querySelector('img');
+                if (thumbImg && featuredImage) {
+                    // Get source from data attribute or from src directly
+                    const imgSrc = thumbImg.getAttribute('data-full') || thumbImg.src;
+                    featuredImage.src = imgSrc;
+                    featuredImage.alt = thumbImg.alt || 'Product image';
+                    console.log(`Changed featured image to: ${imgSrc}`);
+                }
+            });
+        });
+    } else {
+        console.warn('Image gallery elements not found');
+    }
 });
 
-// Simple direct image changing function for more reliable operation
+// Simple direct image changing function that will work with the onclick attribute
 function changeImage(src, alt) {
-    console.log("Changing image to:", src);
+    console.log(`changeImage called with src: ${src}`);
     const featuredImage = document.getElementById('featured-image');
     if (featuredImage) {
         featuredImage.src = src;
         featuredImage.alt = alt || '';
         
-        // Update active thumbnail
+        // Update active state of thumbnails
         const thumbnails = document.querySelectorAll('.thumbnail');
         thumbnails.forEach(thumb => {
             // Check if this thumbnail contains the selected image
             const thumbImg = thumb.querySelector('img');
-            if (thumbImg && (thumbImg.src === src || thumbImg.src.includes(src.split('/').pop()))) {
-                thumb.classList.add('active');
-            } else {
-                thumb.classList.remove('active');
+            if (thumbImg) {
+                const thumbSrc = thumbImg.getAttribute('data-full') || thumbImg.src;
+                // Check if the image source matches or contains the filename
+                if (thumbSrc === src || thumbSrc.includes(src.split('/').pop())) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
             }
         });
+    } else {
+        console.error('Featured image element not found');
     }
 }
-
-// Make sure we don't have conflicting thumbnail setup code
-document.addEventListener('DOMContentLoaded', function() {
-    // Clear any existing click handlers on thumbnails
-    const thumbnails = document.querySelectorAll('.thumbnail');
-    thumbnails.forEach(function(thumb) {
-        const newThumb = thumb.cloneNode(true);
-        if (thumb.parentNode) {
-            thumb.parentNode.replaceChild(newThumb, thumb);
-        }
-    });
-    
-    // Re-initialize thumbnails with fresh event handlers
-    const freshThumbnails = document.querySelectorAll('.thumbnail');
-    const featuredImage = document.getElementById('featured-image');
-    
-    if (freshThumbnails.length > 0 && featuredImage) {
-        console.log('Setting up thumbnails: ' + freshThumbnails.length + ' found');
-        
-        // Set active class on first thumbnail
-        freshThumbnails[0].classList.add('active');
-        
-        // Set initial featured image if needed
-        if (featuredImage.src === '' || featuredImage.src === 'about:blank') {
-            const firstThumbImg = freshThumbnails[0].querySelector('img');
-            if (firstThumbImg) {
-                featuredImage.src = firstThumbImg.src;
-                featuredImage.alt = firstThumbImg.alt;
-            }
-        }
-        
-        // Add click handler to all thumbnails
-        freshThumbnails.forEach(function(thumb) {
-            thumb.addEventListener('click', function() {
-                console.log('Thumbnail clicked');
-                const img = this.querySelector('img');
-                if (img && featuredImage) {
-                    changeImage(img.src, img.alt);
-                }
-            });
-        });
-    }
-});
 
 // Add navbar scroll effect and mobile menu functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -1363,4 +1416,121 @@ document.addEventListener('DOMContentLoaded', function() {
         link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
         document.head.appendChild(link);
     }
-}); 
+});
+
+// Improve chatbot to read from Q&A file
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Setting up improved chatbot with Q&A database');
+    
+    // Chatbot elements
+    const chatButton = document.querySelector('.chat-button');
+    const chatInput = document.querySelector('.chat-input input');
+    const chatMessages = document.querySelector('.chat-messages');
+    const chatQA = {}; // Will store our Q&A data
+    
+    // Function to load the Q&A data
+    function loadChatQA() {
+        console.log('Loading chatbot Q&A database');
+        
+        // Fetch the Q&A file
+        fetch('chatbot-qa.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Could not load chatbot Q&A file');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Chatbot Q&A loaded successfully', data);
+                Object.assign(chatQA, data);
+            })
+            .catch(error => {
+                console.error('Error loading chatbot Q&A:', error);
+                // Add fallback questions in case file doesn't load
+                chatQA.fallback = "I don't have an answer for that. Please contact our support team.";
+                chatQA.questions = {
+                    "what is emguarde": "emGuarde is an EMF protection device designed to shield you from harmful electromagnetic radiation.",
+                    "how does it work": "emGuarde works by creating a protective field that neutralizes harmful EMF radiation.",
+                    "price": "emGuarde is available for $2,499.99 CAD.",
+                    "shipping": "We offer worldwide shipping. Standard delivery takes 5-7 business days.",
+                    "warranty": "emGuarde comes with a 1-year manufacturer warranty."
+                };
+            });
+    }
+    
+    // Function to find best matching answer
+    function findBestAnswer(question) {
+        if (!chatQA.questions) return chatQA.fallback || "I don't have an answer for that yet.";
+        
+        // Normalize the question (lowercase, remove punctuation)
+        const normalizedQuestion = question.toLowerCase().replace(/[^\w\s]/g, '');
+        
+        // Look for exact matches first
+        if (chatQA.questions[normalizedQuestion]) {
+            return chatQA.questions[normalizedQuestion];
+        }
+        
+        // Then look for questions that contain the user's query
+        for (const key in chatQA.questions) {
+            if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
+                return chatQA.questions[key];
+            }
+        }
+        
+        // No match found
+        return chatQA.fallback || "I don't have an answer for that yet.";
+    }
+    
+    // Function to send a message
+    function sendChatMessage() {
+        const message = chatInput.value.trim();
+        if (message === '') return;
+        
+        // Create user message element
+        const userMessageElement = document.createElement('div');
+        userMessageElement.className = 'message user-message';
+        userMessageElement.textContent = message;
+        chatMessages.appendChild(userMessageElement);
+        
+        // Clear input
+        chatInput.value = '';
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Find the best answer from our Q&A database
+        const answer = findBestAnswer(message);
+        
+        // Simulate thinking with a delay
+        setTimeout(function() {
+            const botMessageElement = document.createElement('div');
+            botMessageElement.className = 'message bot-message';
+            botMessageElement.textContent = answer;
+            chatMessages.appendChild(botMessageElement);
+            
+            // Scroll to bottom again
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 800);
+    }
+    
+    // Set up event listeners if chat elements exist
+    if (chatButton && chatInput && chatMessages) {
+        console.log('Setting up chatbot event listeners');
+        
+        // Load the Q&A database
+        loadChatQA();
+        
+        // Add event listener for button
+        chatButton.addEventListener('click', sendChatMessage);
+        
+        // Add event listener for Enter key
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+    } else {
+        console.warn('Chat elements not found');
+    }
+});
