@@ -654,26 +654,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Check if CONFIG is properly defined
-    if (!window.CONFIG) {
-        console.error("CONFIG object is not defined");
-        paypalContainer.innerHTML = 
-            '<p style="color: red;">Payment system configuration is missing. Please try again later or contact support.</p>';
-        return;
-    }
-    
-    if (!window.CONFIG.PAYPAL_CLIENT_ID) {
-        console.error("PayPal client ID is missing");
-        paypalContainer.innerHTML = 
-            '<p style="color: red;">Payment system configuration is incomplete. Please try again later or contact support.</p>';
-        return;
-    }
+    // Hard-code client ID for immediate testing
+    const clientId = window.location.hostname.includes('github.io') || window.location.hostname.includes('mexemexe02')
+        ? 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G' // Sandbox client ID
+        : 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h'; // Live client ID
     
     // Debug
-    console.log("Loading PayPal with client ID:", window.CONFIG.PAYPAL_CLIENT_ID);
+    console.log("Loading PayPal with hard-coded client ID:", clientId);
+    console.log("Current hostname:", window.location.hostname);
+    console.log("Is GitHub Pages?", window.location.hostname.includes('github.io') || window.location.hostname.includes('mexemexe02'));
     
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${window.CONFIG.PAYPAL_CLIENT_ID}&currency=CAD`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=CAD`;
     
     script.onload = function() {
         console.log("PayPal SDK loaded successfully");
@@ -695,8 +687,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }).render('#paypal-button-container');
     };
     
-    script.onerror = function() {
-        console.error("Failed to load PayPal SDK");
+    script.onerror = function(e) {
+        console.error("Failed to load PayPal SDK", e);
         paypalContainer.innerHTML = 
             '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
     };
