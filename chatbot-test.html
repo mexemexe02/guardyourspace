@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        /* Chat Toggle Button */
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #007bff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+        
+        /* Chat Container */
+        .chat-container {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .chat-container.open {
+            display: flex;
+        }
+        
+        /* Chat Header */
+        .chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+        }
+        
+        .chat-close {
+            cursor: pointer;
+        }
+        
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: #f1f1f1;
+            margin-left: auto;
+        }
+        
+        .bot-message {
+            background-color: #e3f2fd;
+        }
+        
+        /* Chat Input */
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .chat-send-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chatbot Test Page</h1>
+    <p>This page tests the chatbot functionality in isolation.</p>
+    
+    <!-- Chat Toggle Button -->
+    <div class="chat-toggle">💬</div>
+    
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <h3>Chat with Us</h3>
+            <span class="chat-close">✖</span>
+        </div>
+        <div class="chat-messages">
+            <div class="message bot-message">Hello! How can I help you today?</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Type your message...">
+            <button class="chat-send-button">Send</button>
+        </div>
+    </div>
+    
+    <script>
+        // Minimal chat functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatToggle = document.querySelector('.chat-toggle');
+            const chatClose = document.querySelector('.chat-close');
+            const chatContainer = document.querySelector('.chat-container');
+            
+            // Toggle chat
+            chatToggle.addEventListener('click', function() {
+                chatContainer.classList.toggle('open');
+                console.log('Chat toggled');
+            });
+            
+            // Close chat
+            chatClose.addEventListener('click', function() {
+                chatContainer.classList.remove('open');
+            });
+        });
+    </script>
+    
+    <!-- Add your clean-chatbot.js script -->
+    <script src="clean-chatbot.js"></script>
+</body>
+</html> 

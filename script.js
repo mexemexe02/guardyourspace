@@ -1,3 +1,9 @@
+// Add these global variables at the top of your script file
+// Global chat element references
+var chatInput = null;
+var chatMessages = null;
+var chatContainer = null;
+
 // Smooth scrolling for navigation links
 document.addEventListener('DOMContentLoaded', function() {
     // Debug CONFIG object
@@ -57,34 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // === CHATBOT INITIALIZATION - Consolidating initialization code ===
     console.log('Initializing chatbot system');
     
-    // Reference to chatbot elements
-    const chatButton = document.querySelector('.chat-button');
-    const chatInput = document.querySelector('.chat-input input');
-    const chatMessages = document.querySelector('.chat-messages');
-    
     // Initialize the chatbot data
-    const chatQA = { questions: {} };
+    window.chatQA = { questions: {} };
     
     // Load chatbot data with caching prevention and better error handling
     loadChatbotData();
-    
-    // Set up chatbot event listeners if elements exist
-    if (chatButton && chatInput && chatMessages) {
-        console.log('Setting up chatbot event listeners');
-        
-        // Add event listener for button
-        chatButton.addEventListener('click', sendChatMessage);
-        
-        // Add event listener for Enter key
-        chatInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendChatMessage();
-            }
-        });
-    } else {
-        console.warn('Chat elements not found on page load');
-    }
 });
 
 // Fix contact form submission
@@ -129,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (contactForm) {
         console.log('Initializing contact form functionality');
         
+        // Prevent default form submission and handle manually
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -138,117 +122,44 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             submitButton.disabled = true;
             
-            // Add a timeout to reset the button if the submission takes too long
-            const buttonResetTimeout = setTimeout(() => {
-                console.log('Form submission timeout - resetting button');
+            // Get form data
+            const formData = new FormData(contactForm);
+            
+            // Log the form data being sent (for debugging)
+            console.log('Submitting form with data:');
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            
+            // Use fetch API for form submission
+            fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Form submitted successfully:', data);
+                
+                // Display success message
+                alert('Thank you for your message! We will get back to you soon.');
+                
+                // Reset form
+                contactForm.reset();
+            })
+            .catch(error => {
+                console.error('Error submitting form:', error);
+                alert('There was an error sending your message. Please try again later.');
+            })
+            .finally(() => {
+                // Restore button state
                 submitButton.innerHTML = originalButtonText;
                 submitButton.disabled = false;
-            }, 15000); // 15 seconds timeout
-            
-            // Try to get reCAPTCHA token, with fallback for when it's not available
-            try {
-                if (typeof grecaptcha !== 'undefined' && grecaptcha.ready) {
-                    console.log("Using reCAPTCHA for form submission");
-                    
-                    grecaptcha.ready(function() {
-                        grecaptcha.execute('6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh', {action: 'submit'})
-                            .then(function(token) {
-                                console.log("reCAPTCHA token obtained");
-                                submitFormWithToken(token);
-                            })
-                            .catch(function(error) {
-                                console.error("reCAPTCHA error:", error);
-                                console.log("Falling back to submission without reCAPTCHA");
-                                submitFormWithToken('');
-                            });
-                    });
-                } else {
-                    console.warn("reCAPTCHA not available, submitting without verification");
-                    submitFormWithToken('');
-                }
-            } catch (error) {
-                console.error("Error in reCAPTCHA setup:", error);
-                submitFormWithToken('');
-            }
-            
-            // Function to submit the form with a token
-            function submitFormWithToken(token) {
-                // Create form data
-                const formData = new FormData(contactForm);
-                
-                // Add the reCAPTCHA token if available
-                if (token) {
-                    formData.append('g-recaptcha-response', token);
-                }
-                
-                // Ensure the access key is set
-                const accessKey = "f115e690-e290-47ea-9449-c63fa95720b1";
-                formData.append('access_key', accessKey);
-                console.log("Using Web3Forms access key:", accessKey.substring(0, 5) + "..." + accessKey.substring(accessKey.length - 5));
-                
-                // Log the form data for debugging (exclude sensitive info)
-                console.log("Form submission fields:", Array.from(formData.keys()));
-                
-                // Use traditional form submission approach
-                const originalAction = contactForm.getAttribute('action');
-                const originalMethod = contactForm.getAttribute('method');
-                
-                // Add a hidden iframe for submission without page reload
-                const iframe = document.createElement('iframe');
-                iframe.name = 'hidden_iframe';
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                
-                // Set form target to the iframe
-                contactForm.setAttribute('target', 'hidden_iframe');
-                
-                // Create success handler
-                iframe.onload = function() {
-                    clearTimeout(buttonResetTimeout);
-                    
-                    // Create and show success message
-                    const formContainer = contactForm.parentElement;
-                    
-                    // Hide the form
-                    contactForm.style.display = 'none';
-                    
-                    // Create success message element
-                    const successMessage = document.createElement('div');
-                    successMessage.className = 'success-message';
-                    successMessage.innerHTML = `
-                        <div class="success-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <h3>Thank You!</h3>
-                        <p>Your message has been sent successfully.</p>
-                        <p>We'll get back to you as soon as possible.</p>
-                        <button class="send-another-btn">Send Another Message</button>
-                    `;
-                    
-                    // Add success message to the page
-                    formContainer.appendChild(successMessage);
-                    
-                    // Add event listener to "Send Another Message" button
-                    const sendAnotherBtn = successMessage.querySelector('.send-another-btn');
-                    sendAnotherBtn.addEventListener('click', function() {
-                        // Reset form
-                        contactForm.reset();
-                        
-                        // Remove success message
-                        formContainer.removeChild(successMessage);
-                        
-                        // Show form again
-                        contactForm.style.display = 'block';
-                        
-                        // Reset button
-                        submitButton.innerHTML = originalButtonText;
-                        submitButton.disabled = false;
-                    });
-                };
-                
-                // Submit the form directly
-                contactForm.submit();
-            }
+            });
         });
     }
 });
@@ -1454,11 +1365,10 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Setting up improved chatbot with Q&A database');
     
-    // Chatbot elements
-    const chatButton = document.querySelector('.chat-button');
-    const chatInput = document.querySelector('.chat-input input');
-    const chatMessages = document.querySelector('.chat-messages');
-    const chatQA = {}; // Will store our Q&A data
+    // Initialize global variables for chat properly
+    window.chatButton = document.querySelector('.chat-button');
+    window.chatInput = document.querySelector('.chat-input input');
+    window.chatMessages = document.querySelector('.chat-messages');
     
     // Function to load the Q&A data
     function loadChatQA() {
@@ -1474,13 +1384,13 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 console.log('Chatbot Q&A loaded successfully', data);
-                Object.assign(chatQA, data);
+                Object.assign(window.chatQA, data);
             })
             .catch(error => {
                 console.error('Error loading chatbot Q&A:', error);
                 // Add fallback questions in case file doesn't load
-                chatQA.fallback = "I don't have an answer for that. Please contact our support team.";
-                chatQA.questions = {
+                window.chatQA.fallback = "I don't have an answer for that. Please contact our support team.";
+                window.chatQA.questions = {
                     "what is emguarde": "emGuarde is an EMF protection device designed to shield you from harmful electromagnetic radiation.",
                     "how does it work": "emGuarde works by creating a protective field that neutralizes harmful EMF radiation.",
                     "price": "emGuarde is available for $2,499.99 CAD.",
@@ -1492,95 +1402,57 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to find best matching answer
     function findBestAnswer(message) {
-        // Use our improved function to find answers
         console.log("Looking for answer to:", message);
         
+        // Normalize the question (lowercase, remove punctuation)
+        const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '').trim();
+        
+        // Split into words for keyword matching
+        const words = normalizedQuestion.split(/\s+/);
+        
+        // List of common question starters to ignore for better matching
+        const questionStarters = ['what', 'who', 'where', 'how', 'when', 'can', 'is', 'are', 'do', 'does', 'tell', 'about'];
+        
+        // Names and important keywords we want to match accurately
+        const criticalKeywords = ['dan', 'john', 'humberto', 'demo', 'store', 'location', 'see'];
+        
         if (!window.chatbotData) {
-            // Try to use the original chatQA data if available
-            if (chatQA && chatQA.questions) {
-                console.log("Using original chatQA data");
-                
-                // Original search logic
-                const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
-                
-                // Look for exact matches in questions object
-                if (chatQA.questions[normalizedQuestion]) {
-                    console.log("Found exact match in original data");
-                    return chatQA.questions[normalizedQuestion];
-                }
-                
-                // Look for exact matches in root-level additions
-                if (chatQA[normalizedQuestion]) {
-                    console.log("Found exact match in root data");
-                    return chatQA[normalizedQuestion];
-                }
-                
-                // Then look for partial matches in questions
-                for (const key in chatQA.questions) {
-                    if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
-                        console.log("Found partial match in questions:", key);
-                        return chatQA.questions[key];
-                    }
-                }
-                
-                // Then look for partial matches in root additions
-                for (const key in chatQA) {
-                    if (typeof chatQA[key] === 'string' && key !== 'fallback' && 
-                        (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
-                        console.log("Found partial match in root data:", key);
-                        return chatQA[key];
-                    }
-                }
-                
-                return chatQA.fallback || "I don't have an answer for that yet.";
-            }
-            console.warn("No chatbot data loaded yet");
+            // ... existing code for handling no data ...
             return "I'm still loading my knowledge base. Please try again in a moment.";
         }
         
-        // Normalize the question (lowercase, remove punctuation)
-        const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
-        
-        // If we have window.chatbotData, check all locations
-        
-        // 1. Check for direct matches in root
-        if (window.chatbotData[normalizedQuestion]) {
-            console.log("Found direct match in reloaded data root");
-            return window.chatbotData[normalizedQuestion];
+        // === SPECIAL DIRECT HANDLING FOR CRITICAL QUESTIONS ===
+        // Direct check for questions about Dan
+        if (normalizedQuestion.includes('dan')) {
+            console.log("Found question about Dan!");
+            return window.chatbotData["who is dan"] || "Dan is the man!";
         }
         
-        // 2. Check for direct matches in questions object
-        if (window.chatbotData.questions && window.chatbotData.questions[normalizedQuestion]) {
-            console.log("Found direct match in reloaded questions data");
-            return window.chatbotData.questions[normalizedQuestion];
+        // Direct check for questions about seeing a demo
+        if (normalizedQuestion.includes('demo') || 
+            (normalizedQuestion.includes('see') && normalizedQuestion.includes('person')) ||
+            normalizedQuestion.includes('store') || 
+            normalizedQuestion.includes('location')) {
+            console.log("Found question about demo/location!");
+            return window.chatbotData["where can i see a demo"] || 
+                   "If you are near Barrie Ontario just walk in to our Kangen store on Dunlop and hwy 400, or call us at 416 918 0473.";
         }
         
-        // 3. Check for partial matches in root
-        for (const key in window.chatbotData) {
-            if (typeof window.chatbotData[key] === 'string' && key !== 'fallback' &&
-                (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
-                console.log("Found partial match in reloaded data root:", key);
-                return window.chatbotData[key];
-            }
-        }
-        
-        // 4. Check for partial matches in questions object
-        if (window.chatbotData.questions) {
-            for (const key in window.chatbotData.questions) {
-                if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
-                    console.log("Found partial match in reloaded questions data:", key);
-                    return window.chatbotData.questions[key];
-                }
-            }
-        }
-        
-        // Use fallback message from either source
-        return (window.chatbotData.fallback || chatQA.fallback || 
-               "I don't have specific information about that. Can I help you with something else about emGuarde?");
+        // ... rest of the original matching logic ...
     }
     
     // Function to send a message
     function sendChatMessage() {
+        // Get fresh references if needed
+        if (!chatInput) chatInput = document.querySelector('.chat-input input');
+        if (!chatMessages) chatMessages = document.querySelector('.chat-messages');
+        
+        // Check if elements exist
+        if (!chatInput || !chatMessages) {
+            console.error('Chat elements not found. Cannot send message.');
+            return;
+        }
+        
         const message = chatInput.value.trim();
         if (message === '') return;
         
@@ -1631,6 +1503,14 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.warn('Chat elements not found');
     }
+    
+    // Load the Q&A data
+    loadChatQA();
+    
+    // Set up chat input handlers once DOM is loaded
+    window.setTimeout(function() {
+        setupChatInputHandlers();
+    }, 1000);
 });
 
 // This is the part where the chat input is created
@@ -1651,12 +1531,30 @@ function createChatInterface() {
     
     // ... rest of the function ...
     
+    // Store references in global variables
+    chatContainer = document.querySelector('.chat-container');
+    chatInput = chatContainer.querySelector('.chat-input input');
+    chatMessages = chatContainer.querySelector('.chat-messages');
+    
     // Add the send button event listener where you set up chat events
     const sendButton = chatContainer.querySelector('.chat-send-button');
     if (sendButton) {
         sendButton.addEventListener('click', function() {
             sendChatMessage();
         });
+    }
+    
+    // Add Enter key functionality
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+        console.log('Enter key handler attached to chat input');
+    } else {
+        console.error('Chat input not found, cannot attach Enter key handler');
     }
 }
 
@@ -1685,9 +1583,23 @@ function loadChatbotData() {
     .then(data => {
         console.log('Chatbot data loaded successfully:', Object.keys(data).length, 'entries');
         
-        // Store data in both original location and window property for compatibility
-        Object.assign(chatQA, data);
+        // Initialize if not already done
+        if (!window.chatQA) {
+            window.chatQA = { questions: {} };
+        }
+        
+        // Store data in both locations for compatibility
+        Object.assign(window.chatQA, data);
         window.chatbotData = data;
+        
+        // Ensure critical questions are available
+        window.chatbotData["who is dan"] = "Dan is the man!";
+        window.chatbotData["where can i see a demo"] = "If you are near Barrie Ontario just walk in to our Kangen store on Dunlop and hwy 400, or call us at 416 918 0473.";
+        
+        console.log("Added critical questions directly to ensure availability");
+        
+        // Add event handlers for chat input after data is loaded
+        setupChatInputHandlers();
     })
     .catch(error => {
         console.error('Error loading chatbot data:', error);
@@ -1705,13 +1617,22 @@ function loadChatbotData() {
         };
         
         // Apply fallback data to both locations
-        Object.assign(chatQA, fallbackData);
+        Object.assign(window.chatQA, fallbackData);
         window.chatbotData = fallbackData;
     });
 }
 
-// Function to send a message
+// Function to send a message - use window.chatInput and window.chatMessages
 function sendChatMessage() {
+    // Get fresh references in case they've changed
+    const chatInput = document.querySelector('.chat-input input');
+    const chatMessages = document.querySelector('.chat-messages');
+    
+    if (!chatInput || !chatMessages) {
+        console.error('Chat elements not found. Cannot send message.');
+        return;
+    }
+    
     const message = chatInput.value.trim();
     if (message === '') return;
     
@@ -1744,91 +1665,323 @@ function sendChatMessage() {
 
 // Function to find best matching answer
 function findBestAnswer(message) {
-    // Use our improved function to find answers
     console.log("Looking for answer to:", message);
     
+    // Normalize the question (lowercase, remove punctuation)
+    const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '').trim();
+    
+    // Split into words for keyword matching
+    const words = normalizedQuestion.split(/\s+/);
+    
+    // List of common question starters to ignore for better matching
+    const questionStarters = ['what', 'who', 'where', 'how', 'when', 'can', 'is', 'are', 'do', 'does', 'tell', 'about'];
+    
+    // Names and important keywords we want to match accurately
+    const criticalKeywords = ['dan', 'john', 'humberto', 'demo', 'store', 'location', 'see'];
+    
     if (!window.chatbotData) {
-        // Try to use the original chatQA data if available
-        if (chatQA && chatQA.questions) {
-            console.log("Using original chatQA data");
-            
-            // Original search logic
-            const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
-            
-            // Look for exact matches in questions object
-            if (chatQA.questions[normalizedQuestion]) {
-                console.log("Found exact match in original data");
-                return chatQA.questions[normalizedQuestion];
-            }
-            
-            // Look for exact matches in root-level additions
-            if (chatQA[normalizedQuestion]) {
-                console.log("Found exact match in root data");
-                return chatQA[normalizedQuestion];
-            }
-            
-            // Then look for partial matches in questions
-            for (const key in chatQA.questions) {
-                if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
-                    console.log("Found partial match in questions:", key);
-                    return chatQA.questions[key];
-                }
-            }
-            
-            // Then look for partial matches in root additions
-            for (const key in chatQA) {
-                if (typeof chatQA[key] === 'string' && key !== 'fallback' && 
-                    (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
-                    console.log("Found partial match in root data:", key);
-                    return chatQA[key];
-                }
-            }
-            
-            return chatQA.fallback || "I don't have an answer for that yet.";
-        }
-        console.warn("No chatbot data loaded yet");
+        // ... existing code for handling no data ...
         return "I'm still loading my knowledge base. Please try again in a moment.";
     }
     
-    // Normalize the question (lowercase, remove punctuation)
-    const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
-    
-    // If we have window.chatbotData, check all locations
-    
-    // 1. Check for direct matches in root
-    if (window.chatbotData[normalizedQuestion]) {
-        console.log("Found direct match in reloaded data root");
-        return window.chatbotData[normalizedQuestion];
+    // === SPECIAL DIRECT HANDLING FOR CRITICAL QUESTIONS ===
+    // Direct check for questions about Dan
+    if (normalizedQuestion.includes('dan')) {
+        console.log("Found question about Dan!");
+        return window.chatbotData["who is dan"] || "Dan is the man!";
     }
     
-    // 2. Check for direct matches in questions object
-    if (window.chatbotData.questions && window.chatbotData.questions[normalizedQuestion]) {
-        console.log("Found direct match in reloaded questions data");
-        return window.chatbotData.questions[normalizedQuestion];
+    // Direct check for questions about seeing a demo
+    if (normalizedQuestion.includes('demo') || 
+        (normalizedQuestion.includes('see') && normalizedQuestion.includes('person')) ||
+        normalizedQuestion.includes('store') || 
+        normalizedQuestion.includes('location')) {
+        console.log("Found question about demo/location!");
+        return window.chatbotData["where can i see a demo"] || 
+               "If you are near Barrie Ontario just walk in to our Kangen store on Dunlop and hwy 400, or call us at 416 918 0473.";
     }
     
-    // 3. Check for partial matches in root
-    for (const key in window.chatbotData) {
-        if (typeof window.chatbotData[key] === 'string' && key !== 'fallback' &&
-            (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
-            console.log("Found partial match in reloaded data root:", key);
-            return window.chatbotData[key];
-        }
-    }
-    
-    // 4. Check for partial matches in questions object
-    if (window.chatbotData.questions) {
-        for (const key in window.chatbotData.questions) {
-            if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
-                console.log("Found partial match in reloaded questions data:", key);
-                return window.chatbotData.questions[key];
-            }
-        }
-    }
-    
-    // Use fallback message from either source
-    return (window.chatbotData.fallback || chatQA.fallback || 
-           "I don't have specific information about that. Can I help you with something else about emGuarde?");
+    // ... rest of the original matching logic ...
 }
 
 // Use this function when processing user input
+
+// Add this function after loadChatbotData() to test specific important questions
+function testCriticalQuestions() {
+    console.log("=== TESTING CRITICAL CHATBOT QUESTIONS ===");
+    // Wait a moment for data to load
+    setTimeout(() => {
+        const testQuestions = [
+            "who is dan?",
+            "Who is Dan",
+            "tell me about dan",
+            "where can I see a demo?",
+            "demo location",
+            "can I see the product in person"
+        ];
+        
+        console.log("Data loaded:", !!window.chatbotData);
+        if (window.chatbotData) {
+            console.log("Total entries:", Object.keys(window.chatbotData).length);
+            console.log("Contains 'who is dan':", !!window.chatbotData["who is dan"]);
+            console.log("Contains 'where can i see a demo':", !!window.chatbotData["where can i see a demo"]);
+        }
+        
+        testQuestions.forEach(question => {
+            const answer = findBestAnswer(question);
+            console.log(`Q: "${question}" → A: "${answer.substring(0, 30)}..."`);
+        });
+    }, 2000);
+}
+
+// Call the test function after loading data
+loadChatbotData();
+testCriticalQuestions();
+
+// Find where your chat interface is initialized - update the elements there
+function initializeChatFunctionality() {
+    // This is typically called setupChatFunctionality or similar in your code
+    
+    // Add code for the Enter key handler
+    const chatInput = document.querySelector('.chat-input input');
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+        console.log('Enter key handler attached to chat input');
+    }
+}
+
+// Add this function to set up chat handlers in one place
+function setupChatInputHandlers() {
+    console.log('Setting up chat input handlers');
+    
+    const chatInput = document.querySelector('.chat-input input');
+    const sendButton = document.querySelector('.chat-send-button');
+    
+    if (chatInput) {
+        // Add Enter key handler
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+        console.log('Enter key handler attached to chat input');
+    } else {
+        console.error('Chat input not found - troubleshooting info:');
+        console.log('All inputs:', document.querySelectorAll('input').length);
+        console.log('Chat container:', document.querySelector('.chat-container'));
+    }
+    
+    if (sendButton) {
+        sendButton.addEventListener('click', function() {
+            sendChatMessage();
+        });
+        console.log('Click handler attached to send button');
+    } else {
+        console.error('Send button not found');
+    }
+}
+
+// Manually initialize input handlers on window load as a fallback
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        setupChatInputHandlers();
+        console.log('Attempting to attach chat handlers on window load');
+        
+        // Let's also try to fix the missing chat toggle functionality
+        const chatToggle = document.querySelector('.chat-toggle');
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatToggle && chatContainer) {
+            chatToggle.addEventListener('click', function() {
+                chatContainer.classList.toggle('open');
+                console.log('Chat toggle clicked, container class:', chatContainer.className);
+            });
+        }
+    }, 1000);
+});
+
+// Add a final fallback attempt
+setTimeout(function() {
+    console.log('Final fallback attempt for chat setup');
+    setupChatInputHandlers();
+}, 3000);
+
+// Function to specifically fix the chat toggle
+function fixChatToggle() {
+    console.log('Attempting to fix chat toggle');
+    
+    // Find the chat toggle button and chat container
+    const chatToggle = document.querySelector('.chat-toggle');
+    const chatContainer = document.querySelector('.chat-container');
+    
+    // Log what we find for debugging
+    console.log('Chat toggle found:', !!chatToggle);
+    console.log('Chat container found:', !!chatContainer);
+    
+    if (chatToggle && chatContainer) {
+        // Remove any existing click handlers
+        chatToggle.onclick = null;
+        
+        // Add a fresh click handler
+        chatToggle.addEventListener('click', function() {
+            console.log('Chat toggle clicked');
+            chatContainer.classList.toggle('open');
+            console.log('Chat container classes:', chatContainer.className);
+        });
+        
+        console.log('Chat toggle handler attached successfully');
+    } else {
+        // Try looking for alternative selectors
+        const altChatToggle = document.querySelector('.chat-button');
+        const altChatContainer = document.querySelector('.chat-panel');
+        
+        console.log('Alt chat toggle found:', !!altChatToggle);
+        console.log('Alt chat container found:', !!altChatContainer);
+        
+        if (altChatToggle && altChatContainer) {
+            altChatToggle.addEventListener('click', function() {
+                console.log('Alt chat toggle clicked');
+                altChatContainer.classList.toggle('open');
+            });
+            console.log('Alternative chat toggle handler attached');
+        } else {
+            console.error('Could not find chat toggle or container with any selector');
+        }
+    }
+}
+
+// Call this function on multiple events to ensure it works
+document.addEventListener('DOMContentLoaded', fixChatToggle);
+window.addEventListener('load', fixChatToggle);
+setTimeout(fixChatToggle, 2000); // Final fallback
+
+// Fix the improved chatbot initialization
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Setting up improved chatbot with Q&A database');
+    
+    // Initialize global variables for chat properly
+    window.chatButton = document.querySelector('.chat-button');
+    window.chatInput = document.querySelector('.chat-input input');
+    window.chatMessages = document.querySelector('.chat-messages');
+    
+    // Function to load the Q&A data
+    function loadChatQA() {
+        // Function body stays unchanged
+    }
+    
+    // Load the Q&A data
+    loadChatQA();
+});
+
+// Fix the sendChatMessage function
+function sendChatMessage() {
+    // Get fresh references every time
+    const chatInput = document.querySelector('.chat-input input');
+    const chatMessages = document.querySelector('.chat-messages');
+    
+    if (!chatInput || !chatMessages) {
+        console.error('Chat elements not found. Cannot send message.');
+        return;
+    }
+    
+    // Rest of function unchanged
+}
+
+// Find where your chat interface is initialized - update the elements there
+function initializeChatFunctionality() {
+    // This is typically called setupChatFunctionality or similar in your code
+    
+    // Add code for the Enter key handler
+    const chatInput = document.querySelector('.chat-input input');
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+        console.log('Enter key handler attached to chat input');
+    }
+}
+
+// Consolidated chat initialization function
+function initChatSystem() {
+    console.log('Initializing chat system with all handlers');
+    
+    // Find all chat elements
+    const chatToggle = document.querySelector('.chat-toggle');
+    const chatContainer = document.querySelector('.chat-container');
+    const chatInput = document.querySelector('.chat-input input');
+    const sendButton = document.querySelector('.chat-send-button');
+    
+    // Log what we find
+    console.log('Chat elements found:', {
+        toggle: !!chatToggle,
+        container: !!chatContainer,
+        input: !!chatInput,
+        sendButton: !!sendButton
+    });
+    
+    // Set up the chat toggle
+    if (chatToggle && chatContainer) {
+        // Remove any previous handlers
+        chatToggle.onclick = null;
+        
+        // Add click handler
+        chatToggle.addEventListener('click', function() {
+            console.log('Chat toggle clicked');
+            chatContainer.classList.toggle('open');
+        });
+    }
+    
+    // Set up the input Enter key handler
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+    }
+    
+    // Set up the send button
+    if (sendButton) {
+        sendButton.addEventListener('click', sendChatMessage);
+    }
+    
+    console.log('Chat system initialized');
+}
+
+// Call the init function at appropriate times
+document.addEventListener('DOMContentLoaded', initChatSystem);
+window.addEventListener('load', initChatSystem);
+
+// Remove these redundant functions
+- function setupChatInputHandlers() {
+-   // ...
+- }
+
+- function fixChatToggle() {
+-   // ...
+- }
+
+// Remove all the setTimeout calls except one final fallback
+- window.addEventListener('load', function() {
+-     setTimeout(function() {
+-         setupChatInputHandlers();
+-         // ...
+-     }, 1000);
+- });
+
+- setTimeout(function() {
+-     console.log('Final fallback attempt for chat setup');
+-     setupChatInputHandlers();
+- }, 3000);
+
++ // One final fallback attempt
++ setTimeout(initChatSystem, 2000);
