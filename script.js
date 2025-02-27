@@ -53,6 +53,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { passive: true });
     
     console.log('Event listeners optimized with passive option where possible');
+
+    // === CHATBOT INITIALIZATION - Consolidating initialization code ===
+    console.log('Initializing chatbot system');
+    
+    // Reference to chatbot elements
+    const chatButton = document.querySelector('.chat-button');
+    const chatInput = document.querySelector('.chat-input input');
+    const chatMessages = document.querySelector('.chat-messages');
+    
+    // Initialize the chatbot data
+    const chatQA = { questions: {} };
+    
+    // Load chatbot data with caching prevention and better error handling
+    loadChatbotData();
+    
+    // Set up chatbot event listeners if elements exist
+    if (chatButton && chatInput && chatMessages) {
+        console.log('Setting up chatbot event listeners');
+        
+        // Add event listener for button
+        chatButton.addEventListener('click', sendChatMessage);
+        
+        // Add event listener for Enter key
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+    } else {
+        console.warn('Chat elements not found on page load');
+    }
 });
 
 // Fix contact form submission
@@ -1459,26 +1491,92 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to find best matching answer
-    function findBestAnswer(question) {
-        if (!chatQA.questions) return chatQA.fallback || "I don't have an answer for that yet.";
+    function findBestAnswer(message) {
+        // Use our improved function to find answers
+        console.log("Looking for answer to:", message);
         
-        // Normalize the question (lowercase, remove punctuation)
-        const normalizedQuestion = question.toLowerCase().replace(/[^\w\s]/g, '');
-        
-        // Look for exact matches first
-        if (chatQA.questions[normalizedQuestion]) {
-            return chatQA.questions[normalizedQuestion];
+        if (!window.chatbotData) {
+            // Try to use the original chatQA data if available
+            if (chatQA && chatQA.questions) {
+                console.log("Using original chatQA data");
+                
+                // Original search logic
+                const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
+                
+                // Look for exact matches in questions object
+                if (chatQA.questions[normalizedQuestion]) {
+                    console.log("Found exact match in original data");
+                    return chatQA.questions[normalizedQuestion];
+                }
+                
+                // Look for exact matches in root-level additions
+                if (chatQA[normalizedQuestion]) {
+                    console.log("Found exact match in root data");
+                    return chatQA[normalizedQuestion];
+                }
+                
+                // Then look for partial matches in questions
+                for (const key in chatQA.questions) {
+                    if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
+                        console.log("Found partial match in questions:", key);
+                        return chatQA.questions[key];
+                    }
+                }
+                
+                // Then look for partial matches in root additions
+                for (const key in chatQA) {
+                    if (typeof chatQA[key] === 'string' && key !== 'fallback' && 
+                        (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
+                        console.log("Found partial match in root data:", key);
+                        return chatQA[key];
+                    }
+                }
+                
+                return chatQA.fallback || "I don't have an answer for that yet.";
+            }
+            console.warn("No chatbot data loaded yet");
+            return "I'm still loading my knowledge base. Please try again in a moment.";
         }
         
-        // Then look for questions that contain the user's query
-        for (const key in chatQA.questions) {
-            if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
-                return chatQA.questions[key];
+        // Normalize the question (lowercase, remove punctuation)
+        const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
+        
+        // If we have window.chatbotData, check all locations
+        
+        // 1. Check for direct matches in root
+        if (window.chatbotData[normalizedQuestion]) {
+            console.log("Found direct match in reloaded data root");
+            return window.chatbotData[normalizedQuestion];
+        }
+        
+        // 2. Check for direct matches in questions object
+        if (window.chatbotData.questions && window.chatbotData.questions[normalizedQuestion]) {
+            console.log("Found direct match in reloaded questions data");
+            return window.chatbotData.questions[normalizedQuestion];
+        }
+        
+        // 3. Check for partial matches in root
+        for (const key in window.chatbotData) {
+            if (typeof window.chatbotData[key] === 'string' && key !== 'fallback' &&
+                (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
+                console.log("Found partial match in reloaded data root:", key);
+                return window.chatbotData[key];
             }
         }
         
-        // No match found
-        return chatQA.fallback || "I don't have an answer for that yet.";
+        // 4. Check for partial matches in questions object
+        if (window.chatbotData.questions) {
+            for (const key in window.chatbotData.questions) {
+                if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
+                    console.log("Found partial match in reloaded questions data:", key);
+                    return window.chatbotData.questions[key];
+                }
+            }
+        }
+        
+        // Use fallback message from either source
+        return (window.chatbotData.fallback || chatQA.fallback || 
+               "I don't have specific information about that. Can I help you with something else about emGuarde?");
     }
     
     // Function to send a message
@@ -1561,3 +1659,176 @@ function createChatInterface() {
         });
     }
 }
+
+// Improved function to load chatbot data with cache-busting and better error handling
+function loadChatbotData() {
+    console.log('Loading chatbot Q&A database');
+    
+    // Cache-busting query parameter
+    const url = 'chatbot-qa.json?v=' + new Date().getTime();
+    
+    // Fetch with timeout
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+    );
+    
+    Promise.race([
+        fetch(url),
+        timeoutPromise
+    ])
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Failed to load chatbot data: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Chatbot data loaded successfully:', Object.keys(data).length, 'entries');
+        
+        // Store data in both original location and window property for compatibility
+        Object.assign(chatQA, data);
+        window.chatbotData = data;
+    })
+    .catch(error => {
+        console.error('Error loading chatbot data:', error);
+        
+        // Add fallback questions in case file doesn't load
+        const fallbackData = {
+            fallback: "I don't have an answer for that right now. Please try again later or contact our support team.",
+            questions: {
+                "what is emguarde": "emGuarde is an EMF protection device designed to shield you from harmful electromagnetic radiation.",
+                "how does it work": "emGuarde works by creating a protective field that neutralizes harmful EMF radiation.",
+                "price": "emGuarde is available for $2,499.99 CAD.",
+                "shipping": "We offer worldwide shipping. Standard delivery takes 5-7 business days.",
+                "warranty": "emGuarde comes with a 1-year manufacturer warranty."
+            }
+        };
+        
+        // Apply fallback data to both locations
+        Object.assign(chatQA, fallbackData);
+        window.chatbotData = fallbackData;
+    });
+}
+
+// Function to send a message
+function sendChatMessage() {
+    const message = chatInput.value.trim();
+    if (message === '') return;
+    
+    // Create user message element
+    const userMessageElement = document.createElement('div');
+    userMessageElement.className = 'message user-message';
+    userMessageElement.textContent = message;
+    chatMessages.appendChild(userMessageElement);
+    
+    // Clear input
+    chatInput.value = '';
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Find the best answer from our Q&A database
+    const answer = findBestAnswer(message);
+    
+    // Simulate thinking with a delay
+    setTimeout(function() {
+        const botMessageElement = document.createElement('div');
+        botMessageElement.className = 'message bot-message';
+        botMessageElement.textContent = answer;
+        chatMessages.appendChild(botMessageElement);
+        
+        // Scroll to bottom again
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 800);
+}
+
+// Function to find best matching answer
+function findBestAnswer(message) {
+    // Use our improved function to find answers
+    console.log("Looking for answer to:", message);
+    
+    if (!window.chatbotData) {
+        // Try to use the original chatQA data if available
+        if (chatQA && chatQA.questions) {
+            console.log("Using original chatQA data");
+            
+            // Original search logic
+            const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
+            
+            // Look for exact matches in questions object
+            if (chatQA.questions[normalizedQuestion]) {
+                console.log("Found exact match in original data");
+                return chatQA.questions[normalizedQuestion];
+            }
+            
+            // Look for exact matches in root-level additions
+            if (chatQA[normalizedQuestion]) {
+                console.log("Found exact match in root data");
+                return chatQA[normalizedQuestion];
+            }
+            
+            // Then look for partial matches in questions
+            for (const key in chatQA.questions) {
+                if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
+                    console.log("Found partial match in questions:", key);
+                    return chatQA.questions[key];
+                }
+            }
+            
+            // Then look for partial matches in root additions
+            for (const key in chatQA) {
+                if (typeof chatQA[key] === 'string' && key !== 'fallback' && 
+                    (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
+                    console.log("Found partial match in root data:", key);
+                    return chatQA[key];
+                }
+            }
+            
+            return chatQA.fallback || "I don't have an answer for that yet.";
+        }
+        console.warn("No chatbot data loaded yet");
+        return "I'm still loading my knowledge base. Please try again in a moment.";
+    }
+    
+    // Normalize the question (lowercase, remove punctuation)
+    const normalizedQuestion = message.toLowerCase().replace(/[^\w\s]/g, '');
+    
+    // If we have window.chatbotData, check all locations
+    
+    // 1. Check for direct matches in root
+    if (window.chatbotData[normalizedQuestion]) {
+        console.log("Found direct match in reloaded data root");
+        return window.chatbotData[normalizedQuestion];
+    }
+    
+    // 2. Check for direct matches in questions object
+    if (window.chatbotData.questions && window.chatbotData.questions[normalizedQuestion]) {
+        console.log("Found direct match in reloaded questions data");
+        return window.chatbotData.questions[normalizedQuestion];
+    }
+    
+    // 3. Check for partial matches in root
+    for (const key in window.chatbotData) {
+        if (typeof window.chatbotData[key] === 'string' && key !== 'fallback' &&
+            (key.includes(normalizedQuestion) || normalizedQuestion.includes(key))) {
+            console.log("Found partial match in reloaded data root:", key);
+            return window.chatbotData[key];
+        }
+    }
+    
+    // 4. Check for partial matches in questions object
+    if (window.chatbotData.questions) {
+        for (const key in window.chatbotData.questions) {
+            if (key.includes(normalizedQuestion) || normalizedQuestion.includes(key)) {
+                console.log("Found partial match in reloaded questions data:", key);
+                return window.chatbotData.questions[key];
+            }
+        }
+    }
+    
+    // Use fallback message from either source
+    return (window.chatbotData.fallback || chatQA.fallback || 
+           "I don't have specific information about that. Can I help you with something else about emGuarde?");
+}
+
+// Use this function when processing user input
