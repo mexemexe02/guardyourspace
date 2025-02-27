@@ -1125,4 +1125,63 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("YouTube API message:", event.data);
         }
     });
+});
+
+// Add this to your DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile-specific unmute button with direct YouTube API access
+    const mobileUnmuteButton = document.getElementById('mobile-unmute-button');
+    const youtubeIframe = document.getElementById('youtube-video');
+    
+    if (mobileUnmuteButton && youtubeIframe) {
+        mobileUnmuteButton.addEventListener('click', function() {
+            console.log("Mobile unmute button clicked");
+            
+            // Try several methods to unmute
+            
+            // Method 1: Using postMessage directly
+            try {
+                youtubeIframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+            } catch (e) {
+                console.log("Method 1 failed:", e);
+            }
+            
+            // Method 2: Using the YouTube API
+            try {
+                if (window.YT && window.YT.Player) {
+                    const player = new YT.Player(youtubeIframe);
+                    player.unMute();
+                    player.setVolume(100);
+                }
+            } catch (e) {
+                console.log("Method 2 failed:", e);
+            }
+            
+            // Method 3: Reload iframe with mute parameter removed
+            try {
+                let src = youtubeIframe.getAttribute('src');
+                src = src.replace('&mute=1', '').replace('?mute=1', '?');
+                src = src.includes('?') ? 
+                    src + '&autoplay=1' : 
+                    src + '?autoplay=1';
+                youtubeIframe.setAttribute('src', src);
+            } catch (e) {
+                console.log("Method 3 failed:", e);
+            }
+            
+            // Change button text to indicate action
+            mobileUnmuteButton.textContent = "AUDIO ENABLED";
+            
+            // Optional: Hide button after a delay
+            setTimeout(function() {
+                mobileUnmuteButton.style.opacity = '0.5';
+            }, 3000);
+        });
+        
+        // Add touchstart event for better mobile response
+        mobileUnmuteButton.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Prevent default touch behavior
+            this.click(); // Trigger the click event
+        });
+    }
 }); 

@@ -1327,4 +1327,34 @@ h2 {
     .chat-container[style*="height: 40px"] .chat-header {
         border-radius: 10px !important;
     }
+}
+
+/* Add these styles for a more visible and touchable unmute button on mobile */
+.mobile-unmute-button {
+    position: absolute;
+    bottom: 70px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 16px;
+    z-index: 1000;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    display: none; /* Hidden by default on desktop */
+}
+
+/* Show unmute button on mobile */
+@media (max-width: 768px) {
+    .mobile-unmute-button {
+        display: block;
+    }
+
+    /* Hide the regular toggle on mobile */
+    .volume-toggle-button {
+        display: none !important;
+    }
 } 
