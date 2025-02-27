@@ -249,7 +249,7 @@ function getBotResponse(message) {
     }
     
     // Comparison questions
-    if (message.includes("better than") || message.includes("compare to") || message.includes("difference between")) {
+    if (message.includes("better than") || message === "compare to" || message.includes("difference between")) {
         return "Unlike simple EMF blockers that only work on a specific device or have very limited range, the emGuarde creates a comprehensive protective field covering up to 400 square feet. Our proprietary technology is more advanced than basic Faraday-type shields, addressing a wider spectrum of electromagnetic frequencies while allowing your devices to function normally.";
     }
     
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Load PayPal script dynamically
+// Add this code for a more robust PayPal button implementation
 document.addEventListener('DOMContentLoaded', function() {
     // Get PayPal container element
     const paypalContainer = document.getElementById('paypal-button-container');
@@ -654,139 +654,96 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Hard-code client ID for immediate testing
-    const clientId = window.location.hostname.includes('github.io') || window.location.hostname.includes('mexemexe02')
-        ? 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G' // Sandbox client ID
-        : 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h'; // Live client ID
+    // Hard-code client ID directly to avoid any config issues
+    let clientId = 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h'; // Live
     
-    // Debug
-    console.log("Loading PayPal with hard-coded client ID:", clientId);
+    // Check for GitHub Pages
+    if (window.location.hostname.includes('github.io') || 
+        window.location.hostname.includes('mexemexe02')) {
+        clientId = 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G'; // Sandbox
+    }
+    
+    console.log("PayPal initialization with client ID:", clientId);
     console.log("Current hostname:", window.location.hostname);
-    console.log("Is GitHub Pages?", window.location.hostname.includes('github.io') || window.location.hostname.includes('mexemexe02'));
     
+    // Clear any existing content and add a loading indicator
+    paypalContainer.innerHTML = '<div class="loading">Loading payment options...</div>';
+    
+    // Create and append the PayPal script
     const script = document.createElement('script');
     script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=CAD`;
     
     script.onload = function() {
         console.log("PayPal SDK loaded successfully");
+        
+        // Clear the loading indicator
+        paypalContainer.innerHTML = '';
+        
+        // Render the PayPal buttons
         paypal.Buttons({
+            // Configure the button style
+            style: {
+                layout: 'vertical',  // vertical | horizontal
+                color:  'blue',      // gold | blue | silver | black
+                shape:  'rect',      // pill | rect
+                label:  'paypal'     // paypal | checkout | buynow
+            },
+            
+            // Set up the transaction
             createOrder: function(data, actions) {
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: '2499.99'
-                        }
+                            value: '2499.99',
+                            currency_code: 'CAD'
+                        },
+                        description: 'emGuarde EMF Protection Device'
                     }]
                 });
             },
+            
+            // Handle approved transactions
             onApprove: function(data, actions) {
                 return actions.order.capture().then(function(details) {
-                    alert('Transaction completed by ' + details.payer.name.given_name);
+                    // Show a success message
+                    console.log('Transaction completed by ' + details.payer.name.given_name, details);
+                    
+                    // Display success message to user
+                    paypalContainer.innerHTML = `
+                        <div class="success-message">
+                            <h3>Thank you for your purchase, ${details.payer.name.given_name}!</h3>
+                            <p>Transaction ID: ${details.id}</p>
+                            <p>We'll process your order right away.</p>
+                        </div>
+                    `;
                 });
+            },
+            
+            // Handle errors
+            onError: function(err) {
+                console.error('PayPal Error:', err);
+                paypalContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>There was an error processing your payment. Please try again or contact support.</p>
+                        <button onclick="window.location.reload()">Try Again</button>
+                    </div>
+                `;
             }
         }).render('#paypal-button-container');
     };
     
     script.onerror = function(e) {
         console.error("Failed to load PayPal SDK", e);
-        paypalContainer.innerHTML = 
-            '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
+        paypalContainer.innerHTML = `
+            <div class="error-message">
+                <p>Unable to load payment system. Please refresh the page or try another browser.</p>
+                <button onclick="window.location.reload()">Refresh Page</button>
+            </div>
+        `;
     };
     
     document.body.appendChild(script);
 });
-
-// Update PayPal button to include 13% tax
-function initPayPalButton() {
-    try {
-        if (window.paypal) {
-            const basePrice = 2499.99;
-            const taxRate = 0.13; // 13% tax
-            const taxAmount = basePrice * taxRate;
-            const totalPrice = basePrice + taxAmount;
-            
-            console.log(`Base price: $${basePrice.toFixed(2)}, Tax (13%): $${taxAmount.toFixed(2)}, Total: $${totalPrice.toFixed(2)}`);
-            
-            paypal.Buttons({
-                style: {
-                    shape: 'rect',
-                    color: 'blue',
-                    layout: 'vertical',
-                    label: 'pay',
-                },
-                
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            description: "emGuarde EMF Protection Device",
-                            amount: {
-                                currency_code: "CAD",
-                                value: totalPrice.toFixed(2),
-                                breakdown: {
-                                    item_total: {
-                                        currency_code: "CAD",
-                                        value: basePrice.toFixed(2)
-                                    },
-                                    tax_total: {
-                                        currency_code: "CAD",
-                                        value: taxAmount.toFixed(2)
-                                    }
-                                }
-                            },
-                            items: [{
-                                name: "emGuarde Device",
-                                unit_amount: {
-                                    currency_code: "CAD",
-                                    value: basePrice.toFixed(2)
-                                },
-                                quantity: "1",
-                                tax: {
-                                    currency_code: "CAD",
-                                    value: taxAmount.toFixed(2)
-                                }
-                            }]
-                        }]
-                    });
-                },
-                
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(orderData) {
-                        console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
-                        
-                        // Show the success page
-                        document.getElementById('buy').style.display = 'none';
-                        document.getElementById('order-success').style.display = 'block';
-                        
-                        // Populate order details
-                        document.getElementById('order-id').textContent = orderData.id;
-                        document.getElementById('order-date').textContent = new Date().toLocaleDateString();
-                        document.getElementById('order-amount').textContent = totalPrice.toFixed(2);
-                        document.getElementById('order-status').textContent = 'Completed';
-                        
-                        // Scroll to success page
-                        window.scrollTo({
-                            top: document.getElementById('order-success').offsetTop - 100,
-                            behavior: 'smooth'
-                        });
-                    });
-                },
-                
-                onError: function(err) {
-                    console.error('PayPal error:', err);
-                    alert('There was an error processing your payment. Please try again or contact support.');
-                }
-            }).render('#paypal-button-container');
-        } else {
-            console.error("PayPal SDK not loaded");
-            document.getElementById('paypal-button-container').innerHTML = 
-                '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
-        }
-    } catch (error) {
-        console.error("Error initializing PayPal button:", error);
-        document.getElementById('paypal-button-container').innerHTML = 
-            '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
-    }
-}
 
 // Add chat notification removal
 document.addEventListener('DOMContentLoaded', function() {
@@ -1010,4 +967,141 @@ function getConfigValue(key, fallback = '') {
 
 // Use this function when accessing keys
 const recaptchaSiteKey = getConfigValue('RECAPTCHA_SITE_KEY');
-const web3FormsKey = getConfigValue('WEB3FORMS_KEY'); 
+const web3FormsKey = getConfigValue('WEB3FORMS_KEY');
+
+// Add this to your DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Find all video elements or iframes with YouTube videos
+    const videoElements = document.querySelectorAll('video, iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+    
+    videoElements.forEach(video => {
+        // For YouTube iframes
+        if (video.tagName === 'IFRAME') {
+            let src = video.getAttribute('src');
+            
+            // Remove mute parameter if present
+            src = src.replace('mute=1', '');
+            
+            // Add enablejsapi=1 to control the player
+            if (!src.includes('enablejsapi=1')) {
+                src = src.includes('?') ? 
+                    src + '&enablejsapi=1' : 
+                    src + '?enablejsapi=1';
+            }
+            
+            // Keep autoplay
+            if (!src.includes('autoplay=1')) {
+                src = src.includes('?') ? 
+                    src + '&autoplay=1' : 
+                    src + '?autoplay=1';
+            }
+            
+            video.setAttribute('src', src);
+            console.log('YouTube video set to autoplay unmuted');
+        }
+        // For HTML5 video elements
+        else if (video.tagName === 'VIDEO') {
+            video.muted = false;
+            video.volume = 0.5; // Set to 50% volume
+            console.log('HTML5 video set to unmuted');
+        }
+    });
+});
+
+// Video volume control with better mobile support
+document.addEventListener('DOMContentLoaded', function() {
+    // Find all video elements or iframes with YouTube videos
+    const videoElements = document.querySelectorAll('video, iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+    const volumeToggleButton = document.getElementById('video-volume-toggle');
+    
+    // Default state tracking
+    let videosMuted = false;
+    
+    // Initialize videos to be unmuted
+    videoElements.forEach(video => {
+        // For YouTube iframes
+        if (video.tagName === 'IFRAME') {
+            let src = video.getAttribute('src');
+            
+            // Make sure we have enablejsapi
+            if (!src.includes('enablejsapi=1')) {
+                src = src.includes('?') ? 
+                    src + '&enablejsapi=1' : 
+                    src + '?enablejsapi=1';
+            }
+            
+            // Set autoplay but NO mute parameter
+            if (!src.includes('autoplay=1')) {
+                src = src.includes('?') ? 
+                    src + '&autoplay=1' : 
+                    src + '?autoplay=1';
+            }
+            
+            // Remove mute if present
+            src = src.replace('&mute=1', '');
+            src = src.replace('?mute=1&', '?');
+            
+            video.setAttribute('src', src);
+            console.log('YouTube video initialized');
+        }
+        // For HTML5 video elements
+        else if (video.tagName === 'VIDEO') {
+            video.muted = false;
+            video.volume = 0.7; // 70% volume
+            console.log('HTML5 video set to unmuted');
+        }
+    });
+    
+    // Set up the toggle button if it exists
+    if (volumeToggleButton) {
+        // Default to unmuted
+        volumeToggleButton.classList.add('unmuted');
+        
+        volumeToggleButton.addEventListener('click', function() {
+            // Toggle state
+            videosMuted = !videosMuted;
+            
+            // Update button appearance
+            if (videosMuted) {
+                volumeToggleButton.classList.remove('unmuted');
+            } else {
+                volumeToggleButton.classList.add('unmuted');
+            }
+            
+            // Update all videos
+            videoElements.forEach(video => {
+                if (video.tagName === 'IFRAME') {
+                    try {
+                        // For YouTube videos
+                        const action = videosMuted ? 'mute' : 'unMute';
+                        video.contentWindow.postMessage(`{"event":"command","func":"${action}","args":""}`, '*');
+                    } catch (e) {
+                        console.error("Error toggling YouTube volume:", e);
+                    }
+                } else if (video.tagName === 'VIDEO') {
+                    // For HTML5 videos
+                    video.muted = videosMuted;
+                }
+            });
+            
+            // Log state for debugging
+            console.log(`Videos ${videosMuted ? 'muted' : 'unmuted'}`);
+        });
+        
+        // Make button visible
+        volumeToggleButton.style.display = 'flex';
+    }
+    
+    // Auto-unmute attempt (might not work due to browser policies)
+    setTimeout(() => {
+        videoElements.forEach(video => {
+            if (video.tagName === 'IFRAME') {
+                try {
+                    video.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                } catch (e) {
+                    console.error("Error auto-unmuting YouTube:", e);
+                }
+            }
+        });
+    }, 1000);
+}); 
