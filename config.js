@@ -11,7 +11,14 @@ const CONFIG = {
         // These are the client IDs you already have configured
         LIVE: 'ARS0c4s7qfFkHhF-aeCdkx40HxH6lRVCG7m-xl6Yhl7auv0IHqc42KAsUxxB30949Xh2DR89kSwYtL9h',
         SANDBOX: 'AWjhgw8o149iP-AtwrcjtThKPuHcs5MzrrzALxtw2--JrLJ9Iv0-AjT2A7XEhjrOH0mspjyldVL8iO6G'
-    }
+    },
+    
+    // Environment settings
+    IS_DEVELOPMENT: window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost",
+    
+    // Feature flags
+    ENABLE_ANALYTICS: true,
+    ENABLE_CHATBOT: true
 };
 
 // Debug output
