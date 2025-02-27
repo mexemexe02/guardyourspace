@@ -1124,4 +1124,73 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Error processing iframe message:", e);
         }
     });
+});
+
+// Improved chatbot minimize function
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.querySelector('.chat-container');
+    const chatMinimize = document.getElementById('chat-minimize');
+    const chatHeader = document.querySelector('.chat-header');
+    
+    // Create chat header controls div if it doesn't exist
+    if (chatHeader && !document.querySelector('.chat-controls')) {
+        const chatControls = document.createElement('div');
+        chatControls.className = 'chat-controls';
+        
+        // Move buttons into controls
+        if (chatMinimize) chatControls.appendChild(chatMinimize);
+        if (document.getElementById('chat-close')) {
+            chatControls.appendChild(document.getElementById('chat-close'));
+        }
+        
+        chatHeader.appendChild(chatControls);
+    }
+    
+    // Toggle minimize on header click
+    if (chatHeader) {
+        chatHeader.addEventListener('click', function(e) {
+            // Don't minimize if clicking on buttons
+            if (e.target.id === 'chat-minimize' || e.target.id === 'chat-close') {
+                return;
+            }
+            
+            if (chatContainer) {
+                chatContainer.classList.toggle('minimized');
+                console.log("Chat minimized: ", chatContainer.classList.contains('minimized'));
+            }
+        });
+    }
+    
+    // Fix Buy button click event
+    const heroBuyButton = document.getElementById('hero-buy-button');
+    if (heroBuyButton) {
+        heroBuyButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Buy button clicked");
+            
+            const buySection = document.getElementById('buy');
+            if (buySection) {
+                const headerOffset = 100;
+                const elementPosition = buySection.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // Flash the pricing box
+                setTimeout(function() {
+                    const pricingBox = document.querySelector('.pricing-box');
+                    if (pricingBox) {
+                        pricingBox.style.boxShadow = '0 0 20px rgba(231, 76, 60, 0.7)';
+                        
+                        setTimeout(function() {
+                            pricingBox.style.boxShadow = '';
+                        }, 2000);
+                    }
+                }, 1000);
+            }
+        });
+    }
 }); 
