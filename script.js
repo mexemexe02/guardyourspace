@@ -969,139 +969,95 @@ function getConfigValue(key, fallback = '') {
 const recaptchaSiteKey = getConfigValue('RECAPTCHA_SITE_KEY');
 const web3FormsKey = getConfigValue('WEB3FORMS_KEY');
 
-// Add this to your DOMContentLoaded event listener
+// CONSOLIDATED VIDEO CONTROL - replace both existing video control sections
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all video elements or iframes with YouTube videos
-    const videoElements = document.querySelectorAll('video, iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
-    
-    videoElements.forEach(video => {
-        // For YouTube iframes
-        if (video.tagName === 'IFRAME') {
-            let src = video.getAttribute('src');
-            
-            // Remove mute parameter if present
-            src = src.replace('mute=1', '');
-            
-            // Add enablejsapi=1 to control the player
-            if (!src.includes('enablejsapi=1')) {
-                src = src.includes('?') ? 
-                    src + '&enablejsapi=1' : 
-                    src + '?enablejsapi=1';
-            }
-            
-            // Keep autoplay
-            if (!src.includes('autoplay=1')) {
-                src = src.includes('?') ? 
-                    src + '&autoplay=1' : 
-                    src + '?autoplay=1';
-            }
-            
-            video.setAttribute('src', src);
-            console.log('YouTube video set to autoplay unmuted');
-        }
-        // For HTML5 video elements
-        else if (video.tagName === 'VIDEO') {
-            video.muted = false;
-            video.volume = 0.5; // Set to 50% volume
-            console.log('HTML5 video set to unmuted');
-        }
-    });
-});
-
-// Video volume control with better mobile support
-document.addEventListener('DOMContentLoaded', function() {
-    // Find all video elements or iframes with YouTube videos
-    const videoElements = document.querySelectorAll('video, iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+    // Find all YouTube video iframes
+    const videoElements = document.querySelectorAll('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
     const volumeToggleButton = document.getElementById('video-volume-toggle');
     
-    // Default state tracking
-    let videosMuted = false;
+    console.log("Found video elements:", videoElements.length);
+    console.log("Found volume toggle button:", volumeToggleButton ? true : false);
     
-    // Initialize videos to be unmuted
+    if (videoElements.length === 0) {
+        console.log("No video elements found on page");
+        return;
+    }
+    
+    // First ensure all videos have the YouTube API enabled
     videoElements.forEach(video => {
-        // For YouTube iframes
-        if (video.tagName === 'IFRAME') {
+        try {
             let src = video.getAttribute('src');
+            if (!src) return;
             
-            // Make sure we have enablejsapi
-            if (!src.includes('enablejsapi=1')) {
-                src = src.includes('?') ? 
-                    src + '&enablejsapi=1' : 
-                    src + '?enablejsapi=1';
+            // Create a URL object to handle parameters properly
+            let videoUrl = new URL(src, window.location.origin);
+            
+            // Add required parameters
+            videoUrl.searchParams.set('enablejsapi', '1');
+            videoUrl.searchParams.set('origin', window.location.origin);
+            
+            // Keep autoplay if it was there
+            if (src.includes('autoplay=1')) {
+                videoUrl.searchParams.set('autoplay', '1');
             }
             
-            // Set autoplay but NO mute parameter
-            if (!src.includes('autoplay=1')) {
-                src = src.includes('?') ? 
-                    src + '&autoplay=1' : 
-                    src + '?autoplay=1';
-            }
-            
-            // Remove mute if present
-            src = src.replace('&mute=1', '');
-            src = src.replace('?mute=1&', '?');
-            
-            video.setAttribute('src', src);
-            console.log('YouTube video initialized');
-        }
-        // For HTML5 video elements
-        else if (video.tagName === 'VIDEO') {
-            video.muted = false;
-            video.volume = 0.7; // 70% volume
-            console.log('HTML5 video set to unmuted');
+            // Set the updated src
+            video.setAttribute('src', videoUrl.href);
+            console.log('Updated YouTube iframe with API enabled:', videoUrl.href);
+        } catch (e) {
+            console.error("Error updating video src:", e);
         }
     });
     
-    // Set up the toggle button if it exists
+    // Set up the volume toggle button if it exists
     if (volumeToggleButton) {
-        // Default to unmuted
+        let isMuted = false;
+        
+        // Set initial appearance
         volumeToggleButton.classList.add('unmuted');
+        volumeToggleButton.style.display = 'flex';
         
         volumeToggleButton.addEventListener('click', function() {
-            // Toggle state
-            videosMuted = !videosMuted;
+            console.log("Volume toggle button clicked");
+            
+            // Toggle mute state
+            isMuted = !isMuted;
             
             // Update button appearance
-            if (videosMuted) {
+            if (isMuted) {
                 volumeToggleButton.classList.remove('unmuted');
+                console.log("Setting videos to muted");
             } else {
                 volumeToggleButton.classList.add('unmuted');
+                console.log("Setting videos to unmuted");
             }
             
-            // Update all videos
+            // Send message to all videos
             videoElements.forEach(video => {
-                if (video.tagName === 'IFRAME') {
-                    try {
-                        // For YouTube videos
-                        const action = videosMuted ? 'mute' : 'unMute';
-                        video.contentWindow.postMessage(`{"event":"command","func":"${action}","args":""}`, '*');
-                    } catch (e) {
-                        console.error("Error toggling YouTube volume:", e);
-                    }
-                } else if (video.tagName === 'VIDEO') {
-                    // For HTML5 videos
-                    video.muted = videosMuted;
+                try {
+                    const command = {
+                        event: 'command',
+                        func: isMuted ? 'mute' : 'unMute',
+                        args: []
+                    };
+                    
+                    console.log("Sending to video:", JSON.stringify(command));
+                    video.contentWindow.postMessage(JSON.stringify(command), '*');
+                } catch (e) {
+                    console.error("Error sending command to video:", e);
                 }
             });
-            
-            // Log state for debugging
-            console.log(`Videos ${videosMuted ? 'muted' : 'unmuted'}`);
         });
         
-        // Make button visible
-        volumeToggleButton.style.display = 'flex';
+        console.log("Volume toggle button setup complete");
+    } else {
+        console.warn("Volume toggle button not found!");
     }
     
-    // Auto-unmute attempt (might not work due to browser policies)
-    setTimeout(() => {
-        videoElements.forEach(video => {
-            if (video.tagName === 'IFRAME') {
-                try {
-                    video.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-                } catch (e) {
-                    console.error("Error auto-unmuting YouTube:", e);
-                }
-            }
-        });
-    }, 1000);
+    // Add listener for messages from iframes
+    window.addEventListener('message', function(event) {
+        if (event.data && typeof event.data === 'string' && event.data.includes('YouTube')) {
+            console.log("YouTube API message:", event.data);
+        }
+    });
 }); 
