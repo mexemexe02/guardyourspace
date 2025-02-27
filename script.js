@@ -1193,4 +1193,81 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});
+
+// Add this function to your script.js file
+document.addEventListener('DOMContentLoaded', function() {
+    // Product gallery image switching
+    const featuredImage = document.getElementById('featured-image');
+    const thumbnails = document.querySelectorAll('.thumbnail-image');
+    const viewMoreButton = document.getElementById('view-more-images');
+    const hiddenImages = document.querySelectorAll('.hidden-image');
+    
+    // Set up thumbnail click handlers
+    if (thumbnails) {
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Update featured image
+                if (featuredImage) {
+                    featuredImage.src = this.getAttribute('data-full');
+                    featuredImage.alt = this.alt;
+                    
+                    // Update active thumbnail
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+    }
+    
+    // Set up view more button
+    if (viewMoreButton && hiddenImages.length > 0) {
+        viewMoreButton.addEventListener('click', function() {
+            // Toggle hidden images
+            hiddenImages.forEach(img => {
+                img.classList.toggle('visible');
+            });
+            
+            // Update button text
+            if (this.textContent.includes('View More')) {
+                this.textContent = 'View Less Images';
+                this.classList.add('expanded');
+            } else {
+                this.textContent = 'View More Images';
+                this.classList.remove('expanded');
+            }
+        });
+    }
+    
+    // Simple modal for image viewing
+    const productImages = document.querySelectorAll('.product-image');
+    if (productImages.length > 0) {
+        productImages.forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.className = 'image-modal';
+                
+                const modalImg = document.createElement('img');
+                modalImg.src = this.getAttribute('data-full') || this.src;
+                
+                const closeBtn = document.createElement('span');
+                closeBtn.className = 'close-modal';
+                closeBtn.innerHTML = '&times;';
+                closeBtn.addEventListener('click', function() {
+                    modal.remove();
+                });
+                
+                modal.appendChild(closeBtn);
+                modal.appendChild(modalImg);
+                document.body.appendChild(modal);
+                
+                // Close when clicking outside the image
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            });
+        });
+    }
 }); 
