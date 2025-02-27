@@ -645,19 +645,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load PayPal script dynamically
 document.addEventListener('DOMContentLoaded', function() {
-    // Load PayPal script dynamically
-    const paypalScript = document.createElement('script');
-    paypalScript.src = `https://www.paypal.com/sdk/js?client-id=${CONFIG.PAYPAL_CLIENT_ID}&currency=CAD`;
-    paypalScript.onload = function() {
+    // Check if CONFIG is properly defined
+    if (!window.CONFIG || !window.CONFIG.PAYPAL_CLIENT_ID) {
+        console.error("PayPal configuration is missing or invalid");
+        document.getElementById('paypal-button-container').innerHTML = 
+            '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
+        return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${window.CONFIG.PAYPAL_CLIENT_ID}&currency=CAD`;
+    script.onload = function() {
         console.log("PayPal SDK loaded successfully");
-        initPayPalButton();
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '2499.99'
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    alert('Transaction completed by ' + details.payer.name.given_name);
+                });
+            }
+        }).render('#paypal-button-container');
     };
-    paypalScript.onerror = function() {
+    script.onerror = function() {
         console.error("Failed to load PayPal SDK");
         document.getElementById('paypal-button-container').innerHTML = 
             '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
     };
-    document.body.appendChild(paypalScript);
+    document.body.appendChild(script);
 });
 
 // Update PayPal button to include 13% tax
