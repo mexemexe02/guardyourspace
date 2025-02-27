@@ -645,16 +645,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load PayPal script dynamically
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if CONFIG is properly defined
-    if (!window.CONFIG || !window.CONFIG.PAYPAL_CLIENT_ID) {
-        console.error("PayPal configuration is missing or invalid");
-        document.getElementById('paypal-button-container').innerHTML = 
-            '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
+    // Get PayPal container element
+    const paypalContainer = document.getElementById('paypal-button-container');
+    
+    // Check if container exists
+    if (!paypalContainer) {
+        console.error("PayPal container not found");
         return;
     }
     
+    // Check if CONFIG is properly defined
+    if (!window.CONFIG) {
+        console.error("CONFIG object is not defined");
+        paypalContainer.innerHTML = 
+            '<p style="color: red;">Payment system configuration is missing. Please try again later or contact support.</p>';
+        return;
+    }
+    
+    if (!window.CONFIG.PAYPAL_CLIENT_ID) {
+        console.error("PayPal client ID is missing");
+        paypalContainer.innerHTML = 
+            '<p style="color: red;">Payment system configuration is incomplete. Please try again later or contact support.</p>';
+        return;
+    }
+    
+    // Debug
+    console.log("Loading PayPal with client ID:", window.CONFIG.PAYPAL_CLIENT_ID);
+    
     const script = document.createElement('script');
     script.src = `https://www.paypal.com/sdk/js?client-id=${window.CONFIG.PAYPAL_CLIENT_ID}&currency=CAD`;
+    
     script.onload = function() {
         console.log("PayPal SDK loaded successfully");
         paypal.Buttons({
@@ -674,11 +694,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }).render('#paypal-button-container');
     };
+    
     script.onerror = function() {
         console.error("Failed to load PayPal SDK");
-        document.getElementById('paypal-button-container').innerHTML = 
+        paypalContainer.innerHTML = 
             '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
     };
+    
     document.body.appendChild(script);
 });
 
