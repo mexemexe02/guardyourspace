@@ -14,11 +14,20 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="#" class="logo">Guard Your Space</a>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
+            <a href="#" class="logo">
+                <!-- Original site name restored -->
+                <span>Guard Your Space</span>
+            </a>
+            
+            <div class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#" class="active">Home</a></li>
                 <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#product-images">Product</a></li>
+                <li><a href="#testimonials">Reviews</a></li>
                 <li><a href="#buy">Buy Now</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
@@ -31,16 +40,7 @@
                 <div class="video-container">
                     <iframe id="youtube-video" src="https://www.youtube.com/embed/bhIQiqrg-T4?enablejsapi=1&origin=https://mexemexe02.github.io" frameborder="0" allowfullscreen></iframe>
                     
-                    <!-- Desktop volume control -->
-                    <div class="video-controls">
-                        <button id="video-volume-toggle" class="volume-toggle-button">
-                            <span class="icon-mute">🔇</span>
-                            <span class="icon-unmute">🔊</span>
-                            <span class="button-text">Toggle Sound</span>
-                        </button>
-                    </div>
-                    
-                    <!-- Mobile-specific unmute button -->
+                    <!-- Mobile-specific unmute button - more discrete -->
                     <button id="mobile-unmute-button" class="mobile-unmute-button">
                         UNMUTE VIDEO
                     </button>
@@ -55,6 +55,67 @@
                         <li><i class="fas fa-check"></i> 30-day money-back guarantee</li>
                     </ul>
                     <a href="#buy" id="hero-buy-button" class="cta-button">VIEW PRICING & BUY NOW</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Update the product gallery to show description beside images -->
+    <section id="product-images" class="product-images-section">
+        <div class="container">
+            <h2>The emGuarde Device</h2>
+            <p class="section-subtitle">Advanced EMF protection technology designed for modern homes and workspaces</p>
+            
+            <div class="product-gallery">
+                <!-- Main featured image -->
+                <div class="featured-image-container">
+                    <img id="featured-image" class="product-image" 
+                         src="images/emguarde-device-front.jpg" 
+                         alt="emGuarde EMF protection device" 
+                         onerror="this.src='https://via.placeholder.com/500x350?text=emGuarde+Device';this.onerror='';">
+                </div>
+                
+                <!-- Thumbnail gallery -->
+                <div class="thumbnail-gallery">
+                    <div class="thumbnail-row">
+                        <div class="thumbnail" onclick="changeImage('images/emguarde-device-front.jpg', 'emGuarde device front view')">
+                            <img class="thumbnail-image product-image" 
+                                 src="images/emguarde-device-front.jpg" 
+                                 alt="emGuarde front view"
+                                 onerror="this.src='https://via.placeholder.com/90x90?text=Front';this.onerror='';">
+                        </div>
+                        <div class="thumbnail" onclick="changeImage('images/emguarde-device-angle.jpg', 'emGuarde device angle view')">
+                            <img class="thumbnail-image product-image" 
+                                 src="images/emguarde-device-angle.jpg" 
+                                 alt="emGuarde angle view"
+                                 onerror="this.src='https://via.placeholder.com/90x90?text=Angle';this.onerror='';">
+                        </div>
+                        <div class="thumbnail" onclick="changeImage('images/emguarde-in-use.jpg', 'emGuarde device in use')">
+                            <img class="thumbnail-image product-image" 
+                                 src="images/emguarde-in-use.jpg" 
+                                 alt="emGuarde in use"
+                                 onerror="this.src='https://via.placeholder.com/90x90?text=In+Use';this.onerror='';">
+                        </div>
+                        <div class="thumbnail" onclick="changeImage('images/emguarde-size-comparison.jpg', 'emGuarde size comparison')">
+                            <img class="thumbnail-image product-image" 
+                                 src="images/emguarde-size-comparison.jpg" 
+                                 alt="emGuarde size comparison"
+                                 onerror="this.src='https://via.placeholder.com/90x90?text=Size';this.onerror='';">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product description section - beside images on desktop -->
+                <div class="product-description">
+                    <h3>About the emGuarde Device</h3>
+                    <p>The emGuarde device is engineered to harmonize harmful electromagnetic fields that surround us in our increasingly connected world. Its advanced technology works continuously to protect you and your loved ones from potential EMF radiation.</p>
+                    <ul class="product-features">
+                        <li>Compact plug-and-play design fits any home or office</li>
+                        <li>Effectively covers up to 400 square feet of living space</li>
+                        <li>Energy efficient operation with minimal power consumption</li>
+                        <li>Zero maintenance required - install once and enjoy protection</li>
+                        <li>30-day money-back guarantee for your peace of mind</li>
+                    </ul>
                 </div>
             </div>
         </div>

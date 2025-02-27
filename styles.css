@@ -17,66 +17,167 @@ body {
     padding: 0 20px;
 }
 
-/* Navigation */
+/* Updated Professional Navbar Styling */
 .navbar {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+    height: 80px;
+    transition: all 0.3s ease;
 }
 
 .navbar .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 20px;
+    padding: 0 20px;
+    height: 100%;
 }
 
 .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.6rem;
+    font-weight: 700;
     text-decoration: none;
-    color: #333;
+    color: #2c3e50;
+    letter-spacing: -0.5px;
+    padding: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 40px;
+    margin-right: 10px;
 }
 
 .nav-links {
     display: flex;
     list-style: none;
+    margin: 0;
+    gap: 5px;
 }
 
 .nav-links li a {
-    padding: 0.5rem 1rem;
+    padding: 10px 16px;
     text-decoration: none;
-    color: #333;
-    transition: color 0.3s ease;
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    letter-spacing: 0.2px;
 }
 
 .nav-links li a:hover {
-    color: var(--secondary-color);
+    background-color: rgba(0,0,0,0.04);
+    color: #c0392b;
+}
+
+.nav-links li a.active {
+    color: #c0392b;
+    background-color: rgba(192, 57, 43, 0.08);
+}
+
+/* Mobile Menu Toggle */
+.menu-toggle {
+    display: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #2c3e50;
+}
+
+/* Responsive Navbar */
+@media (max-width: 767px) {
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-links {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+    
+    .nav-links.show {
+        max-height: 300px;
+    }
+    
+    .nav-links li {
+        width: 100%;
+    }
+    
+    .nav-links li a {
+        display: block;
+        padding: 15px 20px;
+        width: 100%;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-radius: 0;
+    }
+}
+
+/* Scroll behavior for navbar */
+.navbar.scrolled {
+    height: 65px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.98);
 }
 
 /* Hero Section */
 .hero {
+    position: relative;
+    width: 100vw; /* Full viewport width */
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    align-items: flex-start !important;
+    justify-content: center;
+    padding-top: 90px !important;
+    padding-bottom: 30px;
     background: linear-gradient(rgba(44, 62, 80, 0.85), rgba(44, 62, 80, 0.95)),
                 url('https://source.unsplash.com/random/1920x1080?luxury,technology') center/cover;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    text-align: center;
     color: #fff;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.hero-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
 }
 
 .hero h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: clamp(2rem, 5vw, 3rem); /* Responsive font size */
+    margin-bottom: clamp(0.5rem, 2vw, 1rem);
+    text-align: center;
+    max-width: 90vw;
 }
 
 .hero p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+    text-align: center;
+    max-width: 80vw;
 }
 
 /* Sections */
@@ -148,25 +249,26 @@ h2 {
 
 /* Buttons */
 .cta-button {
-    display: inline-block;
-    background: var(--accent-color, #c0392b) !important; /* Force red color */
+    display: inline-block !important;
+    position: relative !important;
+    z-index: 100 !important;
+    background-color: #c0392b !important;
     color: white !important;
-    padding: 15px 40px;
-    border-radius: 30px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    margin-top: 20px;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: clamp(12px, 2vw, 20px) clamp(25px, 4vw, 40px) !important;
+    margin: 20px auto !important;
+    border-radius: 30px !important;
+    font-weight: 600 !important;
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem) !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+    border: none !important;
+    cursor: pointer !important;
+    max-width: min(90vw, 300px) !important;
+    text-align: center !important;
 }
 
 .cta-button:hover {
-    background: #e74c3c !important; /* Lighter red on hover */
+    background-color: #e74c3c !important; /* Lighter red on hover */
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
@@ -449,28 +551,151 @@ footer {
 }
 
 /* Product Specific Styles */
-.hero-content {
+.hero-text {
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    text-align: center;
 }
 
+/* Make YouTube Shorts video container expand with browser width */
 .video-container {
-    position: relative;
-    width: 100%;
-    padding-bottom: 56.25%;
+    width: min(90vw, 400px) !important; /* Use viewport width with max limit */
+    max-width: none !important; /* Remove fixed max-width restriction */
+    margin: 0 auto 20px !important;
+    position: relative !important;
+    padding-bottom: calc(min(90vw, 400px) * 1.67) !important; /* Maintain aspect ratio */
+    height: 0 !important;
+    border-radius: 8px;
     overflow: hidden;
-    margin-bottom: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
 .video-container iframe {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Media queries for responsive video sizes */
+@media (min-width: 576px) {
+    .video-container {
+        width: min(80vw, 450px) !important;
+        padding-bottom: calc(min(80vw, 450px) * 1.67) !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .video-container {
+        width: min(50vw, 500px) !important;
+        padding-bottom: calc(min(50vw, 500px) * 1.67) !important;
+    }
+}
+
+@media (min-width: 1400px) {
+    .video-container {
+        width: min(40vw, 550px) !important;
+        padding-bottom: calc(min(40vw, 550px) * 1.67) !important;
+    }
+}
+
+/* Remove video controls CSS since we no longer need them */
+.video-controls {
+    display: none; /* Hide the entire controls container */
+}
+
+/* Also hide the volume toggle button */
+.volume-toggle-button {
+    display: none;
+}
+
+/* Improved mobile unmute button - less intrusive */
+.mobile-unmute-button {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    bottom: 15px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
     border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 12px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-unmute-button:hover {
+    opacity: 1;
+}
+
+/* Remove all styles related to the YouTube button */
+.youtube-link {
+    display: none;
+}
+
+/* Desktop-specific layout - keep video centered */
+@media (min-width: 992px) {
+    .hero-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 40px;
+    }
+    
+    .video-container {
+        flex: 0 0 45%;
+        margin-right: 20px;
+    }
+    
+    .hero-text {
+        flex: 0 0 45%;
+        text-align: left;
+        padding-top: 0;
+    }
+    
+    .hero h1 {
+        text-align: left;
+    }
+    
+    .hero p {
+        text-align: left;
+    }
+    
+    .hero-text .benefits {
+        margin: 0;
+        text-align: left;
+    }
+    
+    .hero-text .cta-button {
+        margin-left: 0;
+    }
+}
+
+/* Extra large screens - keep portrait ratio but allow slightly wider */
+@media (min-width: 1400px) {
+    .video-container {
+        max-width: 500px !important; /* Slightly wider but still portrait */
+    }
+    
+    .hero-content {
+        max-width: 1400px;
+    }
+    
+    .video-container {
+        flex: 0 0 40%;
+    }
+    
+    .hero-text {
+        flex: 0 0 50%;
+        padding-left: 30px;
+    }
 }
 
 .product-image {
@@ -1188,504 +1413,154 @@ h2 {
     margin-bottom: 15px;
 }
 
-.video-controls {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10;
-}
-
-.volume-toggle-button {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.volume-toggle-button:hover {
-    background-color: rgba(0, 0, 0, 0.9);
-}
-
-.volume-toggle-button .icon-mute,
-.volume-toggle-button .icon-unmute {
-    margin-right: 5px;
-}
-
-.volume-toggle-button .icon-unmute {
-    display: none;
-}
-
-.volume-toggle-button.unmuted .icon-mute {
-    display: none;
-}
-
-.volume-toggle-button.unmuted .icon-unmute {
-    display: inline;
-}
-
-/* Mobile-specific styles - make it VERY visible on phones */
-@media (max-width: 768px) {
-    .video-controls {
-        bottom: 70px; /* Position higher on mobile */
-        right: 15px;
-    }
-    
-    .volume-toggle-button {
-        padding: 15px;
-        border-radius: 50%; /* Make it circular on mobile */
-        width: 50px;
-        height: 50px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5); /* Add shadow for visibility */
-    }
-    
-    .volume-toggle-button .button-text {
-        display: none; /* Hide text on mobile */
-    }
-    
-    .volume-toggle-button .icon-mute,
-    .volume-toggle-button .icon-unmute {
-        margin-right: 0;
-        font-size: 24px; /* Larger icon for mobile */
-    }
-}
-
-/* Mobile-specific chat styles */
-@media (max-width: 768px) {
-    /* Chat container size adjustments */
-    .chat-container {
-        width: 300px !important; /* Reduce width */
-        height: 400px !important; /* Reduce height */
-        right: 10px !important; /* Position closer to edge */
-        bottom: 70px !important; /* Move up to avoid overlapping with other elements */
-        font-size: 14px !important; /* Slightly smaller text */
-    }
-    
-    /* Make chat messages area smaller */
-    #chat-messages {
-        max-height: 300px !important;
-        padding: 10px !important;
-    }
-    
-    /* Reduce padding in message bubbles */
-    .message-bubble {
-        padding: 8px 12px !important;
-        margin-bottom: 8px !important;
-    }
-    
-    /* Smaller input area */
-    .chat-input-container {
-        padding: 8px !important;
-    }
-    
-    #user-input {
-        font-size: 14px !important;
-        padding: 8px 10px !important;
-    }
-    
-    /* Smaller button */
-    #send-button {
-        padding: 6px 10px !important;
-        font-size: 14px !important;
-    }
-    
-    /* Adjust toggle button */
-    .chat-toggle {
-        width: 50px !important;
-        height: 50px !important;
-        bottom: 15px !important;
-        right: 15px !important;
-    }
-    
-    /* Make close button easier to tap */
-    #chat-close {
-        padding: 8px !important;
-        font-size: 16px !important;
-    }
-    
-    /* Smaller chat header */
-    .chat-header {
-        padding: 8px 12px !important;
-    }
-    
-    .chat-header h3 {
-        font-size: 16px !important;
-    }
-}
-
-/* Add these styles for an even better mobile chat experience */
-@media (max-width: 768px) {
-    /* Improve chat header layout with minimize button */
-    .chat-header {
-        display: flex;
-        align-items: center;
-    }
-    
-    /* Ensure the minimize button is easily tappable */
-    #chat-minimize {
-        min-width: 30px !important;
-        min-height: 30px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* When minimized, make header still look good */
-    .chat-container[style*="height: 40px"] .chat-header {
-        border-radius: 10px !important;
-    }
-}
-
-/* Add these styles for a more visible and touchable unmute button on mobile */
-.mobile-unmute-button {
-    position: absolute;
-    bottom: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 30px;
-    font-weight: bold;
-    font-size: 16px;
-    z-index: 1000;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-    display: none; /* Hidden by default */
-}
-
-/* Show unmute button on mobile */
-@media (max-width: 768px) {
-    .mobile-unmute-button {
-        display: block;
-    }
-    
-    .volume-toggle-button {
-        display: none !important;
-    }
-}
-
-/* Additional fix for cropping issues in certain browsers */
-.hero-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-/* Default mobile-first layout */
-.hero-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-/* Video controls positioning */
-.video-controls {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10;
-}
-
-/* Desktop-specific layout - apply when screen is wider than 992px */
-@media (min-width: 992px) {
-    .hero-content {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: space-between;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    .video-container {
-        width: 55%; /* Make video larger */
-        min-width: 500px; /* Ensure minimum size */
-        margin-right: 40px;
-        margin-bottom: 0;
-    }
-    
-    .hero-text {
-        width: 40%;
-        padding-top: 20px;
-    }
-}
-
-/* Additional desktop refinements for larger screens */
-@media (min-width: 1200px) {
-    .video-container {
-        max-width: 650px; /* Slightly wider on very large screens */
-    }
-}
-
-/* Make "Guard Your Space" more vibrant */
-.hero-text h1 {
-    font-size: 3.2rem;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    margin-bottom: 1rem;
-    background: linear-gradient(45deg, #3498db, #2ecc71);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-    letter-spacing: 1px;
-}
-
-/* Product Gallery Styles */
+/* Enhanced Product Gallery Styles */
 .product-images-section {
-    padding: 80px 0;
-    background-color: #f7f9fc;
+    padding: 90px 0;
+    background: linear-gradient(to bottom, #f7f9fc, #fff);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.product-images-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
 }
 
 .section-subtitle {
     text-align: center;
-    color: #777;
-    margin-bottom: 40px;
+    color: #7f8c8d;
+    max-width: 700px;
+    margin: 0 auto 50px;
+    font-size: 1.1rem;
+    line-height: 1.5;
 }
 
 .product-gallery {
     display: grid;
     grid-template-columns: 1fr;
     gap: 30px;
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
+/* Featured image container - single image display */
 .featured-image-container {
     width: 100%;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    border-radius: 8px;
+    height: 300px;
     overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    background-color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
 }
 
 .featured-image-container img {
-    width: 100%;
-    height: auto;
-    display: block;
+    max-width: 100%;
+    max-height: 270px;
+    object-fit: contain;
     transition: transform 0.3s ease;
 }
 
-.featured-image-container img:hover {
-    transform: scale(1.02);
-}
-
+/* Thumbnail gallery styling */
 .thumbnail-gallery {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    width: 100%;
+    margin-top: 10px;
 }
 
 .thumbnail-row {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
+    width: 100%;
 }
 
 .thumbnail {
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
+    width: 70px;
+    height: 70px;
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.thumbnail.active {
+    border-color: #3498db;
+    transform: scale(1.05);
+}
+
+.thumbnail:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
 .thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: all 0.2s ease;
-    border: 3px solid transparent;
 }
 
-.thumbnail img.active {
-    border-color: #3498db;
-}
-
-.thumbnail img:hover {
-    transform: scale(1.05);
-}
-
-.hidden-image {
-    display: none;
-}
-
-.hidden-image.visible {
-    display: block;
-    animation: fadeIn 0.5s ease;
-}
-
-.view-more-button {
-    background-color: transparent;
-    color: #3498db;
-    border: 2px solid #3498db;
-    padding: 8px 20px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.view-more-button:hover {
-    background-color: #3498db;
-    color: white;
-}
-
-.view-more-button.expanded {
-    background-color: #3498db;
-    color: white;
-}
-
-.product-description {
-    padding: 20px;
-}
-
-.product-features {
-    margin-top: 15px;
-    padding-left: 20px;
-}
-
-.product-features li {
-    margin-bottom: 8px;
-}
-
-/* Image Modal */
-.image-modal {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.9);
-    z-index: 1001;
-    justify-content: center;
-    align-items: center;
-    padding: 50px;
-}
-
-.image-modal img {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-}
-
-.close-modal {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    color: white;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Responsive Adjustments */
+/* Responsive layout - two-column for desktop */
 @media (min-width: 768px) {
     .product-gallery {
         grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
     }
     
     .featured-image-container {
         grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        margin-bottom: 15px;
     }
     
     .thumbnail-gallery {
-        align-items: flex-start;
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
     }
     
     .product-description {
         grid-column: 2 / 3;
         grid-row: 1 / 3;
-    }
-}
-
-/* Mobile-specific hero section fixes */
-@media (max-width: 767px) {
-    /* Make hero section scrollable on mobile instead of fixed height */
-    .hero {
-        height: auto;
-        min-height: 100vh;
-        padding: 100px 0 50px; /* Add padding to ensure content is visible */
-    }
-    
-    /* Adjust video container for better mobile viewing */
-    .video-container {
-        width: 95%;
-        max-width: 450px;
-        margin: 0 auto 30px;
-        padding-bottom: 53.25%; /* Slightly reduced from 56.25% to show more top content */
-    }
-    
-    /* Position the iframe better within container */
-    .video-container iframe {
-        top: 0;
-        left: 0;
-        width: 100%;
         height: 100%;
-    }
-    
-    /* Make sure hero content is properly spaced */
-    .hero-content {
-        gap: 20px;
-        justify-content: flex-start;
-    }
-    
-    /* Ensure the buy button is visible */
-    .hero-text {
-        width: 90%;
-        margin: 0 auto;
-    }
-    
-    /* Make button larger and more visible on mobile */
-    .cta-button {
-        font-size: 1rem;
-        padding: 16px 30px;
-        margin-top: 20px;
-        width: 100%; /* Full width on mobile */
-        text-align: center;
-        max-width: 300px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    /* Fix benefit list on mobile */
-    .hero-text .benefits {
-        text-align: left;
-        margin: 0 auto;
-        width: fit-content;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 }
 
-/* Adjust mobile unmute button positioning */
+/* Mobile layout */
 @media (max-width: 767px) {
-    .mobile-unmute-button {
-        bottom: auto;
-        top: 20px;
-        transform: none;
-        left: 20px;
-        padding: 8px 15px;
-        font-size: 14px;
+    .product-gallery {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .featured-image-container {
+        height: 250px;
+    }
+    
+    .featured-image-container img {
+        max-height: 220px;
+    }
+    
+    .thumbnail {
+        width: 60px;
+        height: 60px;
     }
 } 

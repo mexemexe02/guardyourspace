@@ -898,49 +898,71 @@ function scrollAndHighlightBuy(event) {
 // Make the function available globally
 window.scrollAndHighlightBuy = scrollAndHighlightBuy;
 
-// Add a direct event listener to the hero buy button
+// Fix for the null error at line 829
 document.addEventListener('DOMContentLoaded', function() {
-    // Find the hero buy button
-    const heroBuyButton = document.getElementById('hero-buy-button');
+    // Force scroll to top on page load to ensure video is visible
+    window.scrollTo(0, 0);
     
-    if (heroBuyButton) {
-        heroBuyButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log("Hero buy button clicked");
+    // Check if element exists before manipulating it (general fix for line 829 error)
+    const safeSetAttribute = function(element, attribute, value) {
+        if (element) {
+            element.setAttribute(attribute, value);
+            return true;
+        }
+        return false;
+    };
+    
+    // Make this function available globally
+    window.safeSetAttribute = safeSetAttribute;
+    
+    // Fix for video visibility
+    const heroSection = document.querySelector('.hero');
+    if (heroSection) {
+        heroSection.style.paddingTop = '80px';
+        heroSection.style.display = 'flex';
+        heroSection.style.alignItems = 'flex-start';
+    }
+    
+    // Ensure buy button is working by adding a fresh event listener
+    const buyButton = document.getElementById('hero-buy-button');
+    if (buyButton) {
+        console.log('Reattaching buy button event listener');
+        
+        // Clone the button to remove any existing listeners
+        const newButton = buyButton.cloneNode(true);
+        if (buyButton.parentNode) {
+            buyButton.parentNode.replaceChild(newButton, buyButton);
             
-            // Get the buy section
-            const buySection = document.getElementById('buy');
-            
-            if (buySection) {
-                // Calculate position with offset for navbar
-                const headerOffset = 100;
-                const elementPosition = buySection.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            // Add a fresh listener
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Buy button clicked - direct handler');
                 
-                console.log(`Scrolling to position: ${offsetPosition}`);
-                
-                // Scroll to the buy section
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-                
-                // Flash the pricing box
-                setTimeout(function() {
-                    const pricingBox = document.querySelector('.pricing-box');
-                    if (pricingBox) {
-                        console.log("Highlighting pricing box");
-                        pricingBox.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.7)';
-                        
-                        setTimeout(function() {
-                            pricingBox.style.boxShadow = '';
-                        }, 2000);
-                    }
-                }, 1000);
-            }
-        });
-    } else {
-        console.error("Hero buy button not found");
+                const buySection = document.getElementById('buy');
+                if (buySection) {
+                    // Scroll with a proper offset
+                    const offset = 80;
+                    const elementPosition = buySection.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Highlight the pricing
+                    setTimeout(function() {
+                        const pricingBox = document.querySelector('.pricing-box');
+                        if (pricingBox) {
+                            pricingBox.style.boxShadow = '0 0 30px rgba(231, 76, 60, 0.8)';
+                            setTimeout(function() {
+                                pricingBox.style.boxShadow = '';
+                            }, 2000);
+                        }
+                    }, 500);
+                }
+            });
+        }
     }
 });
 
@@ -1195,79 +1217,150 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add this function to your script.js file
+// Updated gallery functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Product gallery image switching
-    const featuredImage = document.getElementById('featured-image');
-    const thumbnails = document.querySelectorAll('.thumbnail-image');
-    const viewMoreButton = document.getElementById('view-more-images');
-    const hiddenImages = document.querySelectorAll('.hidden-image');
+    console.log('Setting up gallery with direct DOM manipulation...');
     
-    // Set up thumbnail click handlers
-    if (thumbnails) {
-        thumbnails.forEach(thumb => {
-            thumb.addEventListener('click', function() {
-                // Update featured image
-                if (featuredImage) {
-                    featuredImage.src = this.getAttribute('data-full');
-                    featuredImage.alt = this.alt;
-                    
+    // Direct DOM manipulation approach
+    setTimeout(function() {
+        // Get elements
+        const featuredImage = document.getElementById('featured-image');
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        
+        console.log('Elements found:', {
+            featuredImage: !!featuredImage,
+            thumbnailCount: thumbnails.length
+        });
+        
+        // Get thumbnails and add click handlers to all of them
+        const featuredImage = document.getElementById('featured-image');
+        
+        if (thumbnails.length > 0) {
+            // Set active class on first thumbnail
+            thumbnails[0].classList.add('active');
+            
+            // Add click handler to all thumbnails
+            thumbnails.forEach(function(thumb) {
+                thumb.addEventListener('click', function() {
                     // Update active thumbnail
                     thumbnails.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
+                    
+                    // Update featured image
+                    if (featuredImage) {
+                        const thumbImg = this.querySelector('img');
+                        if (thumbImg) {
+                            featuredImage.src = thumbImg.getAttribute('data-full') || thumbImg.src;
+                            featuredImage.alt = thumbImg.alt;
+                        }
+                    }
+                });
+            });
+        }
+    }, 1000); // Give the page time to fully load
+});
+
+// Simple direct image changing function for more reliable operation
+function changeImage(src, alt) {
+    console.log("Changing image to:", src);
+    const featuredImage = document.getElementById('featured-image');
+    if (featuredImage) {
+        featuredImage.src = src;
+        featuredImage.alt = alt || '';
+        
+        // Update active thumbnail
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        thumbnails.forEach(thumb => {
+            // Check if this thumbnail contains the selected image
+            const thumbImg = thumb.querySelector('img');
+            if (thumbImg && (thumbImg.src === src || thumbImg.src.includes(src.split('/').pop()))) {
+                thumb.classList.add('active');
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+}
+
+// Make sure we don't have conflicting thumbnail setup code
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any existing click handlers on thumbnails
+    const thumbnails = document.querySelectorAll('.thumbnail');
+    thumbnails.forEach(function(thumb) {
+        const newThumb = thumb.cloneNode(true);
+        if (thumb.parentNode) {
+            thumb.parentNode.replaceChild(newThumb, thumb);
+        }
+    });
+    
+    // Re-initialize thumbnails with fresh event handlers
+    const freshThumbnails = document.querySelectorAll('.thumbnail');
+    const featuredImage = document.getElementById('featured-image');
+    
+    if (freshThumbnails.length > 0 && featuredImage) {
+        console.log('Setting up thumbnails: ' + freshThumbnails.length + ' found');
+        
+        // Set active class on first thumbnail
+        freshThumbnails[0].classList.add('active');
+        
+        // Set initial featured image if needed
+        if (featuredImage.src === '' || featuredImage.src === 'about:blank') {
+            const firstThumbImg = freshThumbnails[0].querySelector('img');
+            if (firstThumbImg) {
+                featuredImage.src = firstThumbImg.src;
+                featuredImage.alt = firstThumbImg.alt;
+            }
+        }
+        
+        // Add click handler to all thumbnails
+        freshThumbnails.forEach(function(thumb) {
+            thumb.addEventListener('click', function() {
+                console.log('Thumbnail clicked');
+                const img = this.querySelector('img');
+                if (img && featuredImage) {
+                    changeImage(img.src, img.alt);
                 }
             });
         });
     }
+});
+
+// Add navbar scroll effect and mobile menu functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Navbar scroll effect
+    const navbar = document.querySelector('.navbar');
     
-    // Set up view more button
-    if (viewMoreButton && hiddenImages.length > 0) {
-        viewMoreButton.addEventListener('click', function() {
-            // Toggle hidden images
-            hiddenImages.forEach(img => {
-                img.classList.toggle('visible');
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+    
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', function() {
+            navLinks.classList.toggle('show');
+        });
+        
+        // Close menu when clicking a link
+        const navItems = navLinks.querySelectorAll('a');
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                navLinks.classList.remove('show');
             });
-            
-            // Update button text
-            if (this.textContent.includes('View More')) {
-                this.textContent = 'View Less Images';
-                this.classList.add('expanded');
-            } else {
-                this.textContent = 'View More Images';
-                this.classList.remove('expanded');
-            }
         });
     }
     
-    // Simple modal for image viewing
-    const productImages = document.querySelectorAll('.product-image');
-    if (productImages.length > 0) {
-        productImages.forEach(img => {
-            img.addEventListener('click', function() {
-                const modal = document.createElement('div');
-                modal.className = 'image-modal';
-                
-                const modalImg = document.createElement('img');
-                modalImg.src = this.getAttribute('data-full') || this.src;
-                
-                const closeBtn = document.createElement('span');
-                closeBtn.className = 'close-modal';
-                closeBtn.innerHTML = '&times;';
-                closeBtn.addEventListener('click', function() {
-                    modal.remove();
-                });
-                
-                modal.appendChild(closeBtn);
-                modal.appendChild(modalImg);
-                document.body.appendChild(modal);
-                
-                // Close when clicking outside the image
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.remove();
-                    }
-                });
-            });
-        });
+    // Add FontAwesome if not already present
+    if (!document.querySelector('link[href*="fontawesome"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+        document.head.appendChild(link);
     }
 }); 
