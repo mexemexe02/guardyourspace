@@ -1534,3 +1534,30 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Chat elements not found');
     }
 });
+
+// This is the part where the chat input is created
+function createChatInterface() {
+    // ... existing code ...
+    
+    // Find where the chat input area is created
+    const chatInputArea = document.createElement('div');
+    chatInputArea.className = 'chat-input';
+    chatInputArea.innerHTML = `
+        <div class="input-with-button">
+            <input type="text" placeholder="Type your message here...">
+            <button class="chat-send-button" title="Send message">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    `;
+    
+    // ... rest of the function ...
+    
+    // Add the send button event listener where you set up chat events
+    const sendButton = chatContainer.querySelector('.chat-send-button');
+    if (sendButton) {
+        sendButton.addEventListener('click', function() {
+            sendChatMessage();
+        });
+    }
+}
