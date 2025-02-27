@@ -971,88 +971,107 @@ const web3FormsKey = getConfigValue('WEB3FORMS_KEY');
 
 // CONSOLIDATED VIDEO CONTROL - replace both existing video control sections
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all YouTube video iframes
+    // Find all YouTube video iframes - more careful selection
     const videoElements = document.querySelectorAll('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
     const volumeToggleButton = document.getElementById('video-volume-toggle');
     
     console.log("Found video elements:", videoElements.length);
     console.log("Found volume toggle button:", volumeToggleButton ? true : false);
     
-    if (videoElements.length === 0) {
-        console.log("No video elements found on page");
+    // If there are no videos or no toggle button, exit early
+    if (videoElements.length === 0 || !volumeToggleButton) {
+        console.log("Video feature not fully available on this page");
+        // Hide the button if it exists but there are no videos
+        if (volumeToggleButton && videoElements.length === 0) {
+            volumeToggleButton.style.display = 'none';
+        }
         return;
     }
     
-    // First ensure all videos have the YouTube API enabled
+    // Ensure all videos have the YouTube API enabled
     videoElements.forEach(video => {
         try {
-            let src = video.getAttribute('src');
-            if (!src) return;
-            
-            // Create a URL object to handle parameters properly
-            let videoUrl = new URL(src, window.location.origin);
-            
-            // Add required parameters
-            videoUrl.searchParams.set('enablejsapi', '1');
-            videoUrl.searchParams.set('origin', window.location.origin);
-            
-            // Keep autoplay if it was there
-            if (src.includes('autoplay=1')) {
-                videoUrl.searchParams.set('autoplay', '1');
+            // Safety check for src attribute
+            if (!video || !video.getAttribute || !video.getAttribute('src')) {
+                console.log("Skipping invalid video element");
+                return;
             }
             
-            // Set the updated src
-            video.setAttribute('src', videoUrl.href);
-            console.log('Updated YouTube iframe with API enabled:', videoUrl.href);
+            let src = video.getAttribute('src');
+            
+            try {
+                // Create a URL object to handle parameters properly
+                let videoUrl = new URL(src, window.location.origin);
+                
+                // Add required parameters
+                videoUrl.searchParams.set('enablejsapi', '1');
+                videoUrl.searchParams.set('origin', window.location.origin);
+                
+                // Keep autoplay if it was there
+                if (src.includes('autoplay=1')) {
+                    videoUrl.searchParams.set('autoplay', '1');
+                }
+                
+                // Set the updated src
+                video.setAttribute('src', videoUrl.href);
+                console.log('Updated YouTube iframe with API enabled:', videoUrl.href);
+            } catch (urlError) {
+                // Fallback for invalid URLs
+                console.error("Error parsing video URL:", urlError);
+                
+                // Manual URL parameter handling as fallback
+                if (!src.includes('enablejsapi=1')) {
+                    src = src.includes('?') ? 
+                        src + '&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin) : 
+                        src + '?enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
+                    video.setAttribute('src', src);
+                }
+            }
         } catch (e) {
-            console.error("Error updating video src:", e);
+            console.error("Error updating video:", e);
         }
     });
     
-    // Set up the volume toggle button if it exists
-    if (volumeToggleButton) {
-        let isMuted = false;
+    // Set up the volume toggle button
+    let isMuted = false;
+    
+    // Set initial appearance
+    volumeToggleButton.classList.add('unmuted');
+    volumeToggleButton.style.display = 'flex';
+    
+    volumeToggleButton.addEventListener('click', function() {
+        console.log("Volume toggle button clicked");
         
-        // Set initial appearance
-        volumeToggleButton.classList.add('unmuted');
-        volumeToggleButton.style.display = 'flex';
+        // Toggle mute state
+        isMuted = !isMuted;
         
-        volumeToggleButton.addEventListener('click', function() {
-            console.log("Volume toggle button clicked");
-            
-            // Toggle mute state
-            isMuted = !isMuted;
-            
-            // Update button appearance
-            if (isMuted) {
-                volumeToggleButton.classList.remove('unmuted');
-                console.log("Setting videos to muted");
-            } else {
-                volumeToggleButton.classList.add('unmuted');
-                console.log("Setting videos to unmuted");
+        // Update button appearance
+        if (isMuted) {
+            volumeToggleButton.classList.remove('unmuted');
+            console.log("Setting videos to muted");
+        } else {
+            volumeToggleButton.classList.add('unmuted');
+            console.log("Setting videos to unmuted");
+        }
+        
+        // Send message to all videos
+        videoElements.forEach(video => {
+            try {
+                const command = {
+                    event: 'command',
+                    func: isMuted ? 'mute' : 'unMute',
+                    args: []
+                };
+                
+                console.log("Sending to video:", JSON.stringify(command));
+                video.contentWindow.postMessage(JSON.stringify(command), '*');
+            } catch (e) {
+                console.error("Error sending command to video:", e);
             }
-            
-            // Send message to all videos
-            videoElements.forEach(video => {
-                try {
-                    const command = {
-                        event: 'command',
-                        func: isMuted ? 'mute' : 'unMute',
-                        args: []
-                    };
-                    
-                    console.log("Sending to video:", JSON.stringify(command));
-                    video.contentWindow.postMessage(JSON.stringify(command), '*');
-                } catch (e) {
-                    console.error("Error sending command to video:", e);
-                }
-            });
         });
-        
-        console.log("Volume toggle button setup complete");
-    } else {
-        console.warn("Volume toggle button not found!");
-    }
+    });
+    
+    console.log("Volume toggle button setup complete");
     
     // Add listener for messages from iframes
     window.addEventListener('message', function(event) {
