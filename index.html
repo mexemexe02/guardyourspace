@@ -323,9 +323,9 @@
     <section id="contact" class="contact">
         <div class="container">
             <h2>Questions? Contact Us</h2>
-            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
-                <!-- Your actual Web3Forms access key -->
-                <input type="hidden" name="access_key" value="f115e690-e290-47ea-9449-c63fa95720b1">
+            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="contact-form">
+                <!-- Your Web3Forms access key (using the safe getter function) -->
+                <input type="hidden" name="access_key" id="web3forms-key">
                 
                 <!-- This will set the "From" name in your email -->
                 <input type="hidden" name="from_name" value="emGuarde Website Contact Form">
@@ -343,6 +343,9 @@
                 
                 <!-- Honeypot for spam prevention -->
                 <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+                
+                <!-- Success redirect URL -->
+                <input type="hidden" name="redirect" id="success-redirect">
                 
                 <!-- reCAPTCHA will be added via JavaScript -->
                 <div class="g-recaptcha-container"></div>

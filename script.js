@@ -47,11 +47,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Fix contact form submission
 document.addEventListener('DOMContentLoaded', function() {
-    const contactForm = document.getElementById('contact-form');
+    // Set up the Web3Forms key using our safe getter
+    const web3FormsKeyInput = document.getElementById('web3forms-key');
+    if (web3FormsKeyInput) {
+        web3FormsKeyInput.value = getConfigValue('WEB3FORMS_KEY', 'f115e690-e290-47ea-9449-c63fa95720b1');
+    }
     
-    if (contactForm) {
-        console.log("Contact form found, setting up submission handler");
+    // Set up the success redirect URL
+    const successRedirect = document.getElementById('success-redirect');
+    if (successRedirect) {
+        successRedirect.value = window.location.origin + window.location.pathname + '?formsubmitted=true';
+    }
+    
+    // Initialize email field for reply-to
+    const emailField = document.getElementById('email-field');
+    const replyToField = document.getElementById('email-replyto');
+    
+    if (emailField && replyToField) {
+        // Set initial value
+        replyToField.value = emailField.value;
         
+        // Update on change
+        emailField.addEventListener('input', function() {
+            replyToField.value = this.value;
+        });
+    }
+    
+    // Check for form submission success parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('formsubmitted') === 'true') {
+        alert('Thank you for your message! We will get back to you soon.');
+        // Remove the parameter from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+    
+    // Set up the contact form submission
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
         // Remove any existing event listeners to avoid duplicates
         const newForm = contactForm.cloneNode(true);
         contactForm.parentNode.replaceChild(newForm, contactForm);
@@ -61,84 +94,65 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             console.log("Contact form submitted");
             
+            // Show loading state
+            const submitButton = newForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Sending...';
+            submitButton.disabled = true;
+            
             // Get reCAPTCHA token
             grecaptcha.ready(function() {
-                grecaptcha.execute('6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh', {action: 'submit'})
+                grecaptcha.execute(getConfigValue('RECAPTCHA_SITE_KEY', '6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh'), {action: 'submit'})
                     .then(function(token) {
                         console.log("reCAPTCHA token obtained");
                         
-                        // Add the token to the form
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'g-recaptcha-response';
-                        input.value = token;
-                        newForm.appendChild(input);
+                        // Create form data
+                        const formData = new FormData(newForm);
+                        formData.append('g-recaptcha-response', token);
                         
-                        // Submit the form with the token
-                        submitContactForm(newForm);
+                        // Submit the form using fetch
+                        fetch(newForm.action, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            console.log("Response status:", response.status);
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Form submission response:", data);
+                            
+                            if (data.success) {
+                                // Show success message
+                                alert('Thank you for your message! We will get back to you soon.');
+                                newForm.reset();
+                            } else {
+                                console.error("Form submission error:", data);
+                                alert('There was an error sending your message. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Form submission error:', error);
+                            alert('There was an error sending your message. Please try again or contact us directly at support@emguarde.com');
+                        })
+                        .finally(() => {
+                            submitButton.textContent = originalText;
+                            submitButton.disabled = false;
+                        });
                     })
                     .catch(function(error) {
                         console.error("reCAPTCHA error:", error);
                         alert("There was an error verifying your submission. Please try again.");
+                        submitButton.textContent = originalText;
+                        submitButton.disabled = false;
                     });
             });
         });
-    } else {
-        console.error("Contact form not found");
     }
 });
-
-// Function to handle contact form submission
-function submitContactForm(form) {
-    console.log("Submitting form to:", form.action);
-    
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Sending...';
-    submitButton.disabled = true;
-    
-    // Create form data
-    const formData = new FormData(form);
-    
-    // Add redirect URL for Web3Forms
-    formData.append('redirect', window.location.origin + window.location.pathname + '?formsubmitted=true');
-    
-    // Log form data for debugging (without sensitive info)
-    console.log("Form data keys:", Array.from(formData.keys()));
-
-    // Submit the form using fetch
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log("Response status:", response.status);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log("Form submission response:", data);
-        
-        if (data.success) {
-            // Show success message
-            alert('Thank you for your message! We will get back to you soon.');
-            form.reset();
-        } else {
-            console.error("Form submission error:", data);
-            alert('There was an error sending your message. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Form submission error:', error);
-        alert('There was an error sending your message. Please try again or contact us directly at support@emguarde.com');
-    })
-    .finally(() => {
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
-    });
-}
 
 // Global variables for chat functionality
 let chatToggle, chatClose, chatContainer, userInput, sendButton, chatMessages;
