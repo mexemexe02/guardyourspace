@@ -444,22 +444,17 @@ footer {
 
 /* Product Specific Styles */
 .hero-content {
-    display: grid;
-    grid-template-columns: minmax(auto, 315px) 1fr;
-    gap: 3rem;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    margin-top: 2rem;
+    width: 100%;
 }
 
 .video-container {
     position: relative;
     width: 100%;
-    padding-bottom: 177.77%;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    padding-bottom: 56.25%;
     overflow: hidden;
-    max-width: 315px;
-    margin: 0 auto;
 }
 
 .video-container iframe {
@@ -468,7 +463,7 @@ footer {
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: 10px;
+    border: none;
 }
 
 .product-image {
@@ -1177,7 +1172,7 @@ h2 {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    z-index: 1000; /* Ensure it's above other elements */
+    z-index: 10;
 }
 
 .volume-toggle-button {
@@ -1356,5 +1351,29 @@ h2 {
     /* Hide the regular toggle on mobile */
     .volume-toggle-button {
         display: none !important;
+    }
+}
+
+/* Additional fix for cropping issues in certain browsers */
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+@media (min-width: 992px) {
+    .hero-content {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    
+    .video-container {
+        width: 60%;
+        margin-right: 40px;
+    }
+    
+    .hero-text {
+        width: 40%;
     }
 } 
