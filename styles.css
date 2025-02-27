@@ -455,6 +455,8 @@ footer {
     width: 100%;
     padding-bottom: 56.25%;
     overflow: hidden;
+    max-width: 100%;
+    margin-bottom: 30px;
 }
 
 .video-container iframe {
@@ -1362,18 +1364,46 @@ h2 {
     width: 100%;
 }
 
+/* Default mobile-first layout */
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Video controls positioning */
+.video-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+/* Desktop-specific layout - apply when screen is wider than 992px */
 @media (min-width: 992px) {
     .hero-content {
         flex-direction: row;
         align-items: flex-start;
+        justify-content: space-between;
     }
     
     .video-container {
-        width: 60%;
+        width: 50%; /* Take half the space */
+        max-width: 600px; /* But don't get too wide */
         margin-right: 40px;
+        margin-bottom: 0;
     }
     
     .hero-text {
-        width: 40%;
+        width: 45%; /* Leave room for spacing */
+        padding-top: 20px; /* Align text with top of video */
+    }
+}
+
+/* Additional desktop refinements for larger screens */
+@media (min-width: 1200px) {
+    .video-container {
+        max-width: 650px; /* Slightly wider on very large screens */
     }
 } 
