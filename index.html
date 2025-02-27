@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <meta http-equiv="X-Frame-Options" content="ALLOW-FROM https://www.paypal.com">
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://www.paypal.com">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
@@ -267,10 +267,13 @@
             <h2>Purchase emGuarde</h2>
             <div class="pricing-box">
                 <h3>emGuarde Protection Device</h3>
-                <div class="price">$2,499.99</div>
+                <div class="price">$2,499.99 CAD</div>
+                <div class="pricing-details">
+                    <p class="price-note">Includes free shipping within Canada, 30-day money-back guarantee, and 1-year manufacturer's warranty.</p>
+                </div>
                 <ul class="features-list">
                     <li>Coverage up to 400 sq ft</li>
-                    <li>Free shipping (US)</li>
+                    <li>Free shipping (Canada)</li>
                     <li>30-day return policy</li>
                     <li>Professional installation available</li>
                     <li>24/7 technical support</li>

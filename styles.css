@@ -597,8 +597,8 @@ footer {
 /* Chat Section Styles */
 .chat-section {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 30px;
+    right: 30px;
     z-index: 1000;
 }
 
@@ -609,18 +609,26 @@ footer {
     background-color: #3498db;
     color: white;
     border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1001;
 }
 
-.chat-toggle:hover {
-    background-color: #2980b9;
-    transform: scale(1.05);
+.chat-toggle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #e74c3c;
+    border-radius: 50%;
+    border: 2px solid white;
 }
 
 .chat-container {
@@ -635,13 +643,16 @@ footer {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transform: scale(0);
-    transform-origin: bottom right;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
 }
 
 .chat-container.active {
-    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 .chat-header {
@@ -1145,4 +1156,19 @@ h2 {
 /* Remove notification dot after click */
 .chat-toggle.notification-read::after {
     display: none;
+}
+
+/* Tax information styling */
+.tax-info {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+.total-price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-top: 10px;
+    margin-bottom: 15px;
 } 
