@@ -1304,4 +1304,27 @@ h2 {
     .chat-header h3 {
         font-size: 16px !important;
     }
+}
+
+/* Add these styles for an even better mobile chat experience */
+@media (max-width: 768px) {
+    /* Improve chat header layout with minimize button */
+    .chat-header {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Ensure the minimize button is easily tappable */
+    #chat-minimize {
+        min-width: 30px !important;
+        min-height: 30px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* When minimized, make header still look good */
+    .chat-container[style*="height: 40px"] .chat-header {
+        border-radius: 10px !important;
+    }
 } 

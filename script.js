@@ -543,6 +543,52 @@ function initChat() {
             };
         }
         
+        // Add minimize button
+        const minimizeButton = document.createElement('button');
+        minimizeButton.id = 'chat-minimize';
+        minimizeButton.innerHTML = '−';
+        minimizeButton.title = 'Minimize chat';
+        
+        // Insert it between the title and close button
+        const chatHeader = chatContainer.querySelector('.chat-header');
+        if (chatHeader) {
+            chatHeader.appendChild(minimizeButton);
+            
+            // Style the button
+            minimizeButton.style.background = 'transparent';
+            minimizeButton.style.border = 'none';
+            minimizeButton.style.color = 'white';
+            minimizeButton.style.fontSize = '18px';
+            minimizeButton.style.cursor = 'pointer';
+            minimizeButton.style.marginLeft = 'auto';
+            minimizeButton.style.marginRight = '10px';
+            
+            // Add click handler
+            minimizeButton.addEventListener('click', function() {
+                const chatBody = chatContainer.querySelector('.chat-body');
+                const chatInput = chatContainer.querySelector('.chat-input-container');
+                
+                if (chatBody && chatInput) {
+                    // Toggle minimized state
+                    if (chatBody.style.display === 'none') {
+                        // Expand
+                        chatBody.style.display = 'block';
+                        chatInput.style.display = 'flex';
+                        minimizeButton.innerHTML = '−';
+                        minimizeButton.title = 'Minimize chat';
+                        chatContainer.style.height = '';  // Reset to CSS value
+                    } else {
+                        // Minimize
+                        chatBody.style.display = 'none';
+                        chatInput.style.display = 'none';
+                        minimizeButton.innerHTML = '+';
+                        minimizeButton.title = 'Expand chat';
+                        chatContainer.style.height = '40px';
+                    }
+                }
+            });
+        }
+        
         console.log("Chat initialization complete");
     } catch (error) {
         console.error("Error initializing chat:", error);
