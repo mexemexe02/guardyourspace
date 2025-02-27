@@ -50,12 +50,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const contactForm = document.getElementById('contact-form');
     
     if (contactForm) {
-        console.log("Contact form found, adding submit handler");
+        console.log("Contact form found, setting up submission handler");
         
-        contactForm.addEventListener('submit', function(e) {
+        // Remove any existing event listeners to avoid duplicates
+        const newForm = contactForm.cloneNode(true);
+        contactForm.parentNode.replaceChild(newForm, contactForm);
+        
+        // Add the event listener to the new form
+        newForm.addEventListener('submit', function(e) {
             e.preventDefault();
             console.log("Contact form submitted");
-            submitContactForm(this);
+            
+            // Get reCAPTCHA token
+            grecaptcha.ready(function() {
+                grecaptcha.execute('6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh', {action: 'submit'})
+                    .then(function(token) {
+                        console.log("reCAPTCHA token obtained");
+                        
+                        // Add the token to the form
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'g-recaptcha-response';
+                        input.value = token;
+                        newForm.appendChild(input);
+                        
+                        // Submit the form with the token
+                        submitContactForm(newForm);
+                    })
+                    .catch(function(error) {
+                        console.error("reCAPTCHA error:", error);
+                        alert("There was an error verifying your submission. Please try again.");
+                    });
+            });
         });
     } else {
         console.error("Contact form not found");
@@ -74,10 +100,11 @@ function submitContactForm(form) {
     // Create form data
     const formData = new FormData(form);
     
-    // Log form data for debugging
-    for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-    }
+    // Add redirect URL for Web3Forms
+    formData.append('redirect', window.location.origin + window.location.pathname + '?formsubmitted=true');
+    
+    // Log form data for debugging (without sensitive info)
+    console.log("Form data keys:", Array.from(formData.keys()));
 
     // Submit the form using fetch
     fetch(form.action, {
@@ -86,19 +113,18 @@ function submitContactForm(form) {
     })
     .then(response => {
         console.log("Response status:", response.status);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
         return response.json();
     })
     .then(data => {
         console.log("Form submission response:", data);
         
         if (data.success) {
+            // Show success message
             alert('Thank you for your message! We will get back to you soon.');
             form.reset();
-            
-            // Reset reCAPTCHA if it exists
-            if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-                grecaptcha.reset();
-            }
         } else {
             console.error("Form submission error:", data);
             alert('There was an error sending your message. Please try again.');
@@ -106,7 +132,7 @@ function submitContactForm(form) {
     })
     .catch(error => {
         console.error('Form submission error:', error);
-        alert('There was an error sending your message. Please try again.');
+        alert('There was an error sending your message. Please try again or contact us directly at support@emguarde.com');
     })
     .finally(() => {
         submitButton.textContent = originalText;
@@ -347,7 +373,7 @@ function getBotResponse(message) {
     if (message.includes("doctor") || message.includes("medical") || message.includes("health professional")) {
         return "Many health professionals recommend the emGuarde device to their patients concerned about EMF exposure. We offer special programs for medical practitioners who wish to provide emGuarde devices to their patients. Please contact our professional services team for more information about our healthcare provider program.";
     }
-
+    
     if (message.includes("compare") || message.includes("better than") || message.includes("difference")) {
         return "Unlike basic EMF blockers with limited range or functionality, the emGuarde device creates a comprehensive protective field covering up to 400 square feet. Our proprietary technology harmonizes a wide spectrum of electromagnetic frequencies while allowing your devices to function normally. Many competing products either have very limited range, require complex installation, or interfere with device operation.";
     }
@@ -603,13 +629,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Fix PayPal button loading
+// Load PayPal script dynamically
 document.addEventListener('DOMContentLoaded', function() {
     // Load PayPal script dynamically
     const paypalScript = document.createElement('script');
     paypalScript.src = `https://www.paypal.com/sdk/js?client-id=${CONFIG.PAYPAL_CLIENT_ID}&currency=CAD`;
-    paypalScript.async = true;
-    paypalScript.onload = initPayPalButton;
+    paypalScript.onload = function() {
+        console.log("PayPal SDK loaded successfully");
+        initPayPalButton();
+    };
     paypalScript.onerror = function() {
         console.error("Failed to load PayPal SDK");
         document.getElementById('paypal-button-container').innerHTML = 
@@ -622,41 +650,28 @@ document.addEventListener('DOMContentLoaded', function() {
 function initPayPalButton() {
     try {
         if (window.paypal) {
-            console.log("PayPal SDK loaded successfully");
-            
-            // Calculate base price and tax
             const basePrice = 2499.99;
             const taxRate = 0.13; // 13% tax
             const taxAmount = basePrice * taxRate;
-            const totalAmount = basePrice + taxAmount;
+            const totalPrice = basePrice + taxAmount;
             
-            // Format for display
-            const formattedTaxAmount = taxAmount.toFixed(2);
-            const formattedTotalAmount = totalAmount.toFixed(2);
-            
-            console.log(`Base price: $${basePrice}, Tax (13%): $${formattedTaxAmount}, Total: $${formattedTotalAmount}`);
-            
-            const buttonContainer = document.getElementById('paypal-button-container');
-            if (!buttonContainer) {
-                console.error("PayPal button container not found");
-                return;
-            }
+            console.log(`Base price: $${basePrice.toFixed(2)}, Tax (13%): $${taxAmount.toFixed(2)}, Total: $${totalPrice.toFixed(2)}`);
             
             paypal.Buttons({
                 style: {
-                    layout: 'vertical',
-                    color: 'blue',
                     shape: 'rect',
-                    label: 'pay'
+                    color: 'blue',
+                    layout: 'vertical',
+                    label: 'pay',
                 },
+                
                 createOrder: function(data, actions) {
-                    console.log("Creating PayPal order with tax");
                     return actions.order.create({
                         purchase_units: [{
-                            description: 'emGuarde EMF Protection Device',
+                            description: "emGuarde EMF Protection Device",
                             amount: {
                                 currency_code: "CAD",
-                                value: formattedTotalAmount,
+                                value: totalPrice.toFixed(2),
                                 breakdown: {
                                     item_total: {
                                         currency_code: "CAD",
@@ -664,12 +679,12 @@ function initPayPalButton() {
                                     },
                                     tax_total: {
                                         currency_code: "CAD",
-                                        value: formattedTaxAmount
+                                        value: taxAmount.toFixed(2)
                                     }
                                 }
                             },
                             items: [{
-                                name: "emGuarde EMF Protection Device",
+                                name: "emGuarde Device",
                                 unit_amount: {
                                     currency_code: "CAD",
                                     value: basePrice.toFixed(2)
@@ -677,43 +692,42 @@ function initPayPalButton() {
                                 quantity: "1",
                                 tax: {
                                     currency_code: "CAD",
-                                    value: formattedTaxAmount
+                                    value: taxAmount.toFixed(2)
                                 }
                             }]
                         }]
                     });
                 },
+                
                 onApprove: function(data, actions) {
-                    console.log("Payment approved", data);
-                    return actions.order.capture().then(function(details) {
-                        console.log("Payment completed", details);
+                    return actions.order.capture().then(function(orderData) {
+                        console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
                         
-                        // Show success page with tax included in total
-                        document.getElementById('order-id').textContent = details.id;
+                        // Show the success page
+                        document.getElementById('buy').style.display = 'none';
+                        document.getElementById('order-success').style.display = 'block';
+                        
+                        // Populate order details
+                        document.getElementById('order-id').textContent = orderData.id;
                         document.getElementById('order-date').textContent = new Date().toLocaleDateString();
-                        document.getElementById('order-amount').textContent = formattedTotalAmount;
+                        document.getElementById('order-amount').textContent = totalPrice.toFixed(2);
                         document.getElementById('order-status').textContent = 'Completed';
                         
-                        // Hide main content and show success page
-                        document.querySelectorAll('section:not(#order-success)').forEach(section => {
-                            section.style.display = 'none';
+                        // Scroll to success page
+                        window.scrollTo({
+                            top: document.getElementById('order-success').offsetTop - 100,
+                            behavior: 'smooth'
                         });
-                        document.getElementById('order-success').style.display = 'block';
-                        window.scrollTo(0, 0);
                     });
                 },
+                
                 onError: function(err) {
-                    console.error("PayPal error:", err);
-                    alert("There was an error processing your payment. Please try again or contact support.");
+                    console.error('PayPal error:', err);
+                    alert('There was an error processing your payment. Please try again or contact support.');
                 }
-            }).render('#paypal-button-container')
-            .catch(err => {
-                console.error("Error rendering PayPal buttons:", err);
-                buttonContainer.innerHTML = 
-                    '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
-            });
+            }).render('#paypal-button-container');
         } else {
-            console.error("PayPal SDK failed to load properly");
+            console.error("PayPal SDK not loaded");
             document.getElementById('paypal-button-container').innerHTML = 
                 '<p style="color: red;">Payment system is temporarily unavailable. Please try again later or contact support.</p>';
         }
@@ -893,4 +907,57 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Test response for 'hello':", getBotResponse('hello'));
     console.log("Test response for 'what does this do':", getBotResponse('what does this do'));
     console.log("Test response for 'how much':", getBotResponse('how much'));
-}); 
+});
+
+// Update the reCAPTCHA execution
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    grecaptcha.ready(function() {
+        grecaptcha.execute('6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh', {action: 'submit'}).then(function(token) {
+            // Add the token to your form
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'g-recaptcha-response';
+            input.value = token;
+            document.getElementById('contact-form').appendChild(input);
+            
+            // Submit the form
+            submitContactForm(document.getElementById('contact-form'));
+        });
+    });
+});
+
+// Initialize email field for reply-to
+document.addEventListener('DOMContentLoaded', function() {
+    const emailField = document.getElementById('email-field');
+    const replyToField = document.getElementById('email-replyto');
+    
+    if (emailField && replyToField) {
+        // Set initial value
+        replyToField.value = emailField.value;
+        
+        // Update on change
+        emailField.addEventListener('input', function() {
+            replyToField.value = this.value;
+        });
+    }
+    
+    // Check for form submission success parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('formsubmitted') === 'true') {
+        alert('Thank you for your message! We will get back to you soon.');
+        // Remove the parameter from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+});
+
+// Safely get config values with fallbacks
+function getConfigValue(key, fallback = '') {
+    return (window.CONFIG && window.CONFIG[key]) ? window.CONFIG[key] : fallback;
+}
+
+// Use this function when accessing keys
+const recaptchaSiteKey = getConfigValue('RECAPTCHA_SITE_KEY');
+const web3FormsKey = getConfigValue('WEB3FORMS_KEY'); 

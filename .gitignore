@@ -1,9 +1,11 @@
-# Ignore config with real keys
+# Ignore configuration files with sensitive information
 config.js
+.env
 
-# Ignore any log files
+# Ignore logs and temporary files
 *.log
-
-# Ignore system files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Ignore node modules if you're using npm
+node_modules/ 

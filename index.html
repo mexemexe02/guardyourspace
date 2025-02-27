@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://www.paypal.com">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -334,22 +334,19 @@
                 <input type="hidden" name="subject" value="New emGuarde Website Inquiry">
                 
                 <!-- This is where you'll receive replies -->
-                <input type="hidden" name="replyto" value="{email}">
+                <input type="hidden" name="replyto" id="email-replyto">
                 
                 <!-- Your form fields -->
                 <input type="text" name="name" placeholder="Your Name" required>
-                <input type="email" name="email" placeholder="Your Email" required>
+                <input type="email" name="email" id="email-field" placeholder="Your Email" required>
                 <textarea name="message" placeholder="Your Message" required></textarea>
                 
                 <!-- Honeypot for spam prevention -->
                 <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
                 
-                <!-- Update reCAPTCHA div -->
-                <div class="g-recaptcha" 
-                     data-sitekey="6LfgqeMqAAAAAHE-UM1rD-sGBsjBFnyX-Ey3c0Sh" 
-                     data-callback="enableSubmit"
-                     data-size="normal"
-                     data-theme="light"></div>
+                <!-- reCAPTCHA will be added via JavaScript -->
+                <div class="g-recaptcha-container"></div>
+                
                 <button type="submit" class="cta-button">Send Message</button>
             </form>
         </div>
@@ -449,6 +446,14 @@
     </footer>
 
     <!-- Add these script tags right before the closing </body> tag -->
+    <script>
+        // Fallback configuration in case config.js is missing
+        const CONFIG = {
+            RECAPTCHA_SITE_KEY: "",
+            WEB3FORMS_KEY: "",
+            PAYPAL_CLIENT_ID: ""
+        };
+    </script>
     <script src="config.js"></script>
     <script src="script.js"></script>
     <!-- PayPal SDK will be loaded by script.js -->

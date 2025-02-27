@@ -1,0 +1,24 @@
+name: Build and Deploy
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create config file
+        run: |
+          echo "const CONFIG = {" > config.js
+          echo "  RECAPTCHA_SITE_KEY: \"${{ secrets.RECAPTCHA_SITE_KEY }}\"," >> config.js
+          echo "  WEB3FORMS_KEY: \"${{ secrets.WEB3FORMS_KEY }}\"," >> config.js
+          echo "  PAYPAL_CLIENT_ID: \"${{ secrets.PAYPAL_CLIENT_ID }}\"" >> config.js
+          echo "};" >> config.js
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: . 
