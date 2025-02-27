@@ -1015,161 +1015,96 @@ function getConfigValue(key, fallback = '') {
 const recaptchaSiteKey = getConfigValue('RECAPTCHA_SITE_KEY');
 const web3FormsKey = getConfigValue('WEB3FORMS_KEY');
 
-// CONSOLIDATED VIDEO CONTROL - replace both existing video control sections
+// Simplified video controls - replace your current video control code
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all YouTube video iframes - more careful selection
-    const videoElements = document.querySelectorAll('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+    // Elements
+    const youtubeIframe = document.getElementById('youtube-video');
     const volumeToggleButton = document.getElementById('video-volume-toggle');
+    const mobileUnmuteButton = document.getElementById('mobile-unmute-button');
     
-    console.log("Found video elements:", videoElements.length);
-    console.log("Found volume toggle button:", volumeToggleButton ? true : false);
+    // Log what we found
+    console.log("YouTube iframe found:", youtubeIframe ? "Yes" : "No");
+    console.log("Volume toggle button found:", volumeToggleButton ? "Yes" : "No");
+    console.log("Mobile unmute button found:", mobileUnmuteButton ? "Yes" : "No");
     
-    // If there are no videos or no toggle button, exit early
-    if (videoElements.length === 0 || !volumeToggleButton) {
-        console.log("Video feature not fully available on this page");
-        // Hide the button if it exists but there are no videos
-        if (volumeToggleButton && videoElements.length === 0) {
-            volumeToggleButton.style.display = 'none';
-        }
-        return;
-    }
-    
-    // Ensure all videos have the YouTube API enabled
-    videoElements.forEach(video => {
+    // Function to unmute video
+    function unmuteVideo() {
+        if (!youtubeIframe) return;
+        
+        console.log("Attempting to unmute video");
+        
+        // Method 1: Direct postMessage
         try {
-            // Safety check for src attribute
-            if (!video || !video.getAttribute || !video.getAttribute('src')) {
-                console.log("Skipping invalid video element");
-                return;
-            }
-            
-            let src = video.getAttribute('src');
-            
-            try {
-                // Create a URL object to handle parameters properly
-                let videoUrl = new URL(src, window.location.origin);
+            youtubeIframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: 'unMute',
+                args: []
+            }), '*');
+            console.log("Sent unmute command via postMessage");
+        } catch (e) {
+            console.error("Method 1 failed:", e);
+        }
+        
+        // Method 2: Reload with updated URL
+        try {
+            let src = youtubeIframe.getAttribute('src');
+            if (src) {
+                // Remove mute parameter if present
+                src = src.replace('&mute=1', '').replace('?mute=1&', '?');
                 
-                // Add required parameters
-                videoUrl.searchParams.set('enablejsapi', '1');
-                videoUrl.searchParams.set('origin', window.location.origin);
-                
-                // Keep autoplay if it was there
-                if (src.includes('autoplay=1')) {
-                    videoUrl.searchParams.set('autoplay', '1');
-                }
-                
-                // Set the updated src
-                video.setAttribute('src', videoUrl.href);
-                console.log('Updated YouTube iframe with API enabled:', videoUrl.href);
-            } catch (urlError) {
-                // Fallback for invalid URLs
-                console.error("Error parsing video URL:", urlError);
-                
-                // Manual URL parameter handling as fallback
+                // Make sure we have API enabled
                 if (!src.includes('enablejsapi=1')) {
                     src = src.includes('?') ? 
-                        src + '&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin) : 
-                        src + '?enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
-                    video.setAttribute('src', src);
+                        src + '&enablejsapi=1' : 
+                        src + '?enablejsapi=1';
                 }
+                
+                // Add origin if not present
+                if (!src.includes('origin=')) {
+                    src = src + '&origin=' + encodeURIComponent(window.location.origin);
+                }
+                
+                console.log("Updated video src:", src);
+                youtubeIframe.setAttribute('src', src);
             }
         } catch (e) {
-            console.error("Error updating video:", e);
+            console.error("Method 2 failed:", e);
         }
-    });
+    }
     
-    // Set up the volume toggle button
-    let isMuted = false;
-    
-    // Set initial appearance
-    volumeToggleButton.classList.add('unmuted');
-    volumeToggleButton.style.display = 'flex';
-    
-    volumeToggleButton.addEventListener('click', function() {
-        console.log("Volume toggle button clicked");
+    // Set up desktop volume toggle button
+    if (volumeToggleButton) {
+        let isMuted = true; // Start muted
         
-        // Toggle mute state
-        isMuted = !isMuted;
-        
-        // Update button appearance
-        if (isMuted) {
-            volumeToggleButton.classList.remove('unmuted');
-            console.log("Setting videos to muted");
-        } else {
-            volumeToggleButton.classList.add('unmuted');
-            console.log("Setting videos to unmuted");
-        }
-        
-        // Send message to all videos
-        videoElements.forEach(video => {
-            try {
-                const command = {
-                    event: 'command',
-                    func: isMuted ? 'mute' : 'unMute',
-                    args: []
-                };
-                
-                console.log("Sending to video:", JSON.stringify(command));
-                video.contentWindow.postMessage(JSON.stringify(command), '*');
-            } catch (e) {
-                console.error("Error sending command to video:", e);
+        volumeToggleButton.addEventListener('click', function() {
+            console.log("Volume toggle button clicked");
+            isMuted = !isMuted;
+            
+            if (isMuted) {
+                // Mute video
+                try {
+                    youtubeIframe.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: 'mute',
+                        args: []
+                    }), '*');
+                    volumeToggleButton.classList.remove('unmuted');
+                } catch (e) {
+                    console.error("Mute failed:", e);
+                }
+            } else {
+                // Unmute video
+                unmuteVideo();
+                volumeToggleButton.classList.add('unmuted');
             }
         });
-    });
+    }
     
-    console.log("Volume toggle button setup complete");
-    
-    // Add listener for messages from iframes
-    window.addEventListener('message', function(event) {
-        if (event.data && typeof event.data === 'string' && event.data.includes('YouTube')) {
-            console.log("YouTube API message:", event.data);
-        }
-    });
-});
-
-// Add this to your DOMContentLoaded event listener
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile-specific unmute button with direct YouTube API access
-    const mobileUnmuteButton = document.getElementById('mobile-unmute-button');
-    const youtubeIframe = document.getElementById('youtube-video');
-    
-    if (mobileUnmuteButton && youtubeIframe) {
+    // Set up mobile unmute button
+    if (mobileUnmuteButton) {
         mobileUnmuteButton.addEventListener('click', function() {
             console.log("Mobile unmute button clicked");
-            
-            // Try several methods to unmute
-            
-            // Method 1: Using postMessage directly
-            try {
-                youtubeIframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-            } catch (e) {
-                console.log("Method 1 failed:", e);
-            }
-            
-            // Method 2: Using the YouTube API
-            try {
-                if (window.YT && window.YT.Player) {
-                    const player = new YT.Player(youtubeIframe);
-                    player.unMute();
-                    player.setVolume(100);
-                }
-            } catch (e) {
-                console.log("Method 2 failed:", e);
-            }
-            
-            // Method 3: Reload iframe with mute parameter removed
-            try {
-                let src = youtubeIframe.getAttribute('src');
-                src = src.replace('&mute=1', '').replace('?mute=1', '?');
-                src = src.includes('?') ? 
-                    src + '&autoplay=1' : 
-                    src + '?autoplay=1';
-                youtubeIframe.setAttribute('src', src);
-            } catch (e) {
-                console.log("Method 3 failed:", e);
-            }
-            
-            // Change button text to indicate action
+            unmuteVideo();
             mobileUnmuteButton.textContent = "AUDIO ENABLED";
             
             // Optional: Hide button after a delay
@@ -1177,11 +1112,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 mobileUnmuteButton.style.opacity = '0.5';
             }, 3000);
         });
-        
-        // Add touchstart event for better mobile response
-        mobileUnmuteButton.addEventListener('touchstart', function(e) {
-            e.preventDefault(); // Prevent default touch behavior
-            this.click(); // Trigger the click event
-        });
     }
+    
+    // Listen for messages from the iframe
+    window.addEventListener('message', function(event) {
+        try {
+            if (typeof event.data === 'string') {
+                console.log("Message received from iframe:", event.data);
+            }
+        } catch (e) {
+            console.error("Error processing iframe message:", e);
+        }
+    });
 }); 
