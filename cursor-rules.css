@@ -1,0 +1,203 @@
+/* ============================================
+   CURSOR RULES - REUSABLE STYLES
+   ============================================
+   A collection of cursor styles for consistent UX across projects
+   Version: 1.0
+*/
+
+/* ============ BASIC INTERACTIVE ELEMENTS ============ */
+
+/* Default cursor for regular text and non-interactive elements */
+body, p, span, h1, h2, h3, h4, h5, h6, div, section, article {
+  cursor: default;
+}
+
+/* Pointer cursor for all clickable elements */
+a, button, input[type="submit"], input[type="button"], input[type="reset"],
+.button, .btn, [role="button"], summary, .nav-item, .menu-item, 
+.clickable, .card:hover, .interactive, [data-action], .accordion-header {
+  cursor: pointer;
+}
+
+/* Text selection cursor */
+input[type="text"], input[type="email"], input[type="password"], 
+input[type="search"], input[type="tel"], input[type="url"], 
+input[type="number"], input[type="date"], textarea, [contenteditable="true"] {
+  cursor: text;
+}
+
+/* ============ FUNCTIONAL STATES ============ */
+
+/* Loading state */
+.loading, .processing, .is-loading, .is-processing, .spinner, 
+.progress, [aria-busy="true"] {
+  cursor: wait;
+}
+
+/* Disabled elements */
+button:disabled, input:disabled, select:disabled, textarea:disabled,
+.disabled, [aria-disabled="true"], .btn-disabled {
+  cursor: not-allowed !important; /* Force this even on otherwise clickable elements */
+}
+
+/* Help contexts */
+[title]:not([role="button"]):not(button):not(a):not(input):not(select),
+[data-tooltip], .has-tooltip, abbr[title], .help-text, .info-icon {
+  cursor: help;
+}
+
+/* Draggable elements */
+[draggable="true"], .draggable, .drag-handle {
+  cursor: grab;
+}
+
+/* Active dragging state */
+[draggable="true"]:active, .draggable:active, .drag-handle:active,
+.is-dragging {
+  cursor: grabbing;
+}
+
+/* ============ RESIZING ELEMENTS ============ */
+
+/* Horizontal resize */
+.resize-horizontal, .h-resize, .column-resize, 
+.table-column-resize, [data-resize="horizontal"] {
+  cursor: col-resize;
+}
+
+/* Vertical resize */
+.resize-vertical, .v-resize, .row-resize, 
+.table-row-resize, [data-resize="vertical"] {
+  cursor: row-resize;
+}
+
+/* Corner/diagonal resize */
+.resize, .resize-corner, .resize-handle, [data-resize="both"] {
+  cursor: nwse-resize; /* Bottom-right corner resize */
+}
+
+.resize-handle-top-left {
+  cursor: nwse-resize;
+}
+
+.resize-handle-top-right, .resize-handle-bottom-left {
+  cursor: nesw-resize;
+}
+
+/* ============ TEXT OPERATIONS ============ */
+
+/* Text selection operations */
+.text-select-all {
+  cursor: text;
+  user-select: all;
+}
+
+/* Zoom operations */
+.zoom-in, .magnify, .enlarge {
+  cursor: zoom-in;
+}
+
+.zoom-out, .reduce {
+  cursor: zoom-out;
+}
+
+/* ============ DIRECTIONAL INDICATORS ============ */
+
+/* Pagination and sequential navigation */
+.pagination-prev, .nav-prev, .arrow-left, .prev-slide, 
+[data-direction="left"], .carousel-control-prev, .slick-prev {
+  cursor: w-resize;
+}
+
+.pagination-next, .nav-next, .arrow-right, .next-slide, 
+[data-direction="right"], .carousel-control-next, .slick-next {
+  cursor: e-resize;
+}
+
+/* Contextual move indicators */
+.move, .movable, .pan {
+  cursor: move;
+}
+
+.move-up, [data-direction="up"] {
+  cursor: n-resize;
+}
+
+.move-down, [data-direction="down"] {
+  cursor: s-resize;
+}
+
+/* ============ CUSTOM CONTEXTUAL CURSORS ============ */
+
+/* Copy operation */
+.copy, .duplicate, .clone, [data-action="copy"] {
+  cursor: copy;
+}
+
+/* Cell selection (tables, spreadsheets) */
+.cell-select, td.selectable, th.selectable, .table-cell-selection {
+  cursor: cell;
+}
+
+/* Text context operations */
+.text-vertical, .vertical-text {
+  cursor: vertical-text;
+}
+
+/* ============ CROSS-BROWSER CONSIDERATIONS ============ */
+
+/* For Safari and some mobile browsers */
+@supports (-webkit-touch-callout: none) {
+  /* Improve tap targets on mobile */
+  a, button, input[type="submit"], input[type="button"],
+  .button, .btn, summary, .nav-item, .menu-item, .card {
+    cursor: pointer;
+    /* Additional mobile-friendly tap size */
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ============ MEDIA QUERIES ============ */
+
+/* Adjust cursors for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  /* On touch devices, cursor properties don't really apply,
+     but we can still adjust other properties for better touch UX */
+  .touch-only-adjustments {
+    /* Add touch-specific styles here */
+  }
+}
+
+/* ============ CUSTOM CURSOR EXAMPLES ============ */
+
+/* 
+   For custom image cursors, uncomment and customize:
+
+.custom-cursor {
+  cursor: url('path-to-cursor.png'), auto;
+}
+
+.custom-cursor-with-fallback {
+  cursor: url('path-to-cursor.png') 15 15, pointer;
+  /* The 15 15 values represent the cursor hotspot (x,y) position */
+/*}*/
+
+/* ============ USAGE EXAMPLES ============ */
+
+/*
+Example of combined states:
+
+.interactive-element {
+  cursor: pointer;
+}
+
+.interactive-element.is-loading {
+  cursor: wait;
+}
+
+.interactive-element:disabled,
+.interactive-element.is-disabled {
+  cursor: not-allowed;
+}
+*/ 

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Rules Demo</title>
+    <link rel="stylesheet" href="cursor-rules.css">
+    <style>
+        /* Demo page styling */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        h1 {
+            color: #0055bb;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #003399;
+            margin-top: 30px;
+        }
+        
+        .demo-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .demo-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 200px;
+        }
+        
+        .cursor-name {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .code-example {
+            background-color: #f3f3f3;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        #drag-demo {
+            width: 300px;
+            height: 200px;
+            background-color: #e9f5ff;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #draggable-box {
+            width: 100px;
+            height: 100px;
+            background-color: #0078d4;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 50px;
+            left: 100px;
+        }
+        
+        #resize-demo {
+            width: 300px;
+            height: 200px;
+            background-color: #f0f0f0;
+            position: relative;
+            margin-top: 20px;
+        }
+        
+        .resize-handle-demo {
+            width: 20px;
+            height: 20px;
+            background-color: #0078d4;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cursor Rules Demo</h1>
+    <p>Hover over each element to see the different cursor styles in action.</p>
+    
+    <h2>Basic Interactive Elements</h2>
+    <div class="demo-section">
+        <div class="demo-item">
+            This is regular text
+            <div class="cursor-name">default</div>
+        </div>
+        
+        <a href="#" class="demo-item">
+            This is a link
+            <div class="cursor-name">pointer</div>
+        </a>
+        
+        <button class="demo-item">
+            This is a button
+            <div class="cursor-name">pointer</div>
+        </button>
+        
+        <div class="demo-item clickable">
+            This has class="clickable"
+            <div class="cursor-name">pointer</div>
+        </div>
+        
+        <input type="text" placeholder="Text input" class="demo-item">
+        <div class="cursor-name">text</div>
+    </div>
+    
+    <h2>Functional States</h2>
+    <div class="demo-section">
+        <div class="demo-item loading">
+            This has class="loading"
+            <div class="cursor-name">wait</div>
+        </div>
+        
+        <button disabled class="demo-item">
+            Disabled button
+            <div class="cursor-name">not-allowed</div>
+        </button>
+        
+        <div class="demo-item disabled">
+            This has class="disabled"
+            <div class="cursor-name">not-allowed</div>
+        </div>
+        
+        <abbr title="Hypertext Markup Language" class="demo-item">
+            HTML (hover me)
+            <div class="cursor-name">help</div>
+        </abbr>
+        
+        <div class="demo-item info-icon" title="This provides help">
+            ? (hover me)
+            <div class="cursor-name">help</div>
+        </div>
+    </div>
+    
+    <h2>Draggable Elements</h2>
+    <div class="demo-section">
+        <div class="demo-item draggable">
+            This has class="draggable"
+            <div class="cursor-name">grab</div>
+        </div>
+        
+        <div class="demo-item drag-handle">
+            This has class="drag-handle"
+            <div class="cursor-name">grab</div>
+        </div>
+        
+        <div id="drag-demo">
+            <div id="draggable-box" class="draggable">Drag Me!</div>
+        </div>
+    </div>
+    
+    <h2>Resizing Elements</h2>
+    <div class="demo-section">
+        <div class="demo-item resize-horizontal">
+            This has class="resize-horizontal"
+            <div class="cursor-name">col-resize</div>
+        </div>
+        
+        <div class="demo-item resize-vertical">
+            This has class="resize-vertical"
+            <div class="cursor-name">row-resize</div>
+        </div>
+        
+        <div id="resize-demo">
+            <div class="resize-handle-demo resize-handle">↘</div>
+        </div>
+    </div>
+    
+    <h2>Directional Indicators</h2>
+    <div class="demo-section">
+        <div class="demo-item nav-prev">
+            Previous
+            <div class="cursor-name">w-resize</div>
+        </div>
+        
+        <div class="demo-item nav-next">
+            Next
+            <div class="cursor-name">e-resize</div>
+        </div>
+        
+        <div class="demo-item move">
+            This has class="move"
+            <div class="cursor-name">move</div>
+        </div>
+    </div>
+    
+    <h2>Text Operations</h2>
+    <div class="demo-section">
+        <div class="demo-item zoom-in">
+            Zoom In (+)
+            <div class="cursor-name">zoom-in</div>
+        </div>
+        
+        <div class="demo-item zoom-out">
+            Zoom Out (-)
+            <div class="cursor-name">zoom-out</div>
+        </div>
+        
+        <div class="demo-item text-select-all">
+            Select All Text (click me)
+            <div class="cursor-name">text + user-select: all</div>
+        </div>
+    </div>
+    
+    <h2>Custom Operations</h2>
+    <div class="demo-section">
+        <div class="demo-item copy">
+            Copy Operation
+            <div class="cursor-name">copy</div>
+        </div>
+        
+        <div class="demo-item cell-select">
+            Cell Selection
+            <div class="cursor-name">cell</div>
+        </div>
+    </div>
+    
+    <h2>Code Example</h2>
+    <div class="demo-section">
+        <div class="code-example">
+            &lt;button class="loading"&gt;Processing...&lt;/button&gt;<br>
+            &lt;div class="draggable"&gt;Drag me&lt;/div&gt;<br>
+            &lt;abbr title="Cascading Style Sheets"&gt;CSS&lt;/abbr&gt;
+        </div>
+    </div>
+    
+    <script>
+        // Simple demo script for dragging
+        (function() {
+            const box = document.getElementById('draggable-box');
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            box.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                box.classList.add('is-dragging');
+                offsetX = e.clientX - box.getBoundingClientRect().left;
+                offsetY = e.clientY - box.getBoundingClientRect().top;
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const container = document.getElementById('drag-demo');
+                const containerRect = container.getBoundingClientRect();
+                
+                let newX = e.clientX - containerRect.left - offsetX;
+                let newY = e.clientY - containerRect.top - offsetY;
+                
+                // Keep within bounds
+                newX = Math.max(0, Math.min(newX, containerRect.width - box.offsetWidth));
+                newY = Math.max(0, Math.min(newY, containerRect.height - box.offsetHeight));
+                
+                box.style.left = newX + 'px';
+                box.style.top = newY + 'px';
+            });
+            
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    box.classList.remove('is-dragging');
+                    isDragging = false;
+                }
+            });
+        })();
+    </script>
+</body>
+</html> 
